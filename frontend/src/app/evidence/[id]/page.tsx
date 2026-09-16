@@ -18,14 +18,17 @@ import {
   User,
   Radar,
   FileSpreadsheet,
+  FolderTree,
 } from "lucide-react";
 import { getAnalysisReport } from "@/lib/api";
 import { type FullReportResponse } from "@/lib/mock-data";
 import { CrimeTimeline } from "@/components/evidence/CrimeTimeline";
 import { DnaRadarChart } from "@/components/evidence/DnaRadarChart";
 import { AnomalyCaseFiles } from "@/components/evidence/AnomalyCaseFiles";
+import { FileHeatmap } from "@/components/evidence/FileHeatmap";
+import { DiffInspector } from "@/components/evidence/DiffInspector";
 
-type TabType = "overview" | "timeline" | "radar" | "anomalies";
+type TabType = "overview" | "timeline" | "radar" | "heatmap" | "anomalies";
 
 export default function EvidenceWall() {
   const params = useParams();
@@ -35,6 +38,13 @@ export default function EvidenceWall() {
   const [report, setReport] = useState<FullReportResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabType>("overview");
+  const [diffModal, setDiffModal] = useState<{
+    isOpen: boolean;
+    filePath?: string;
+    commitHash?: string;
+    authorName?: string;
+    commitMessage?: string;
+  }>({ isOpen: false });
 
   useEffect(() => {
     let isCurrent = true;
@@ -143,6 +153,19 @@ export default function EvidenceWall() {
           >
             <Radar className="h-3.5 w-3.5" />
             <span>DNA Radar Comparison</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab("heatmap")}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
+              activeTab === "heatmap"
+                ? "bg-zinc-100 text-zinc-950 font-semibold shadow"
+                : "text-zinc-400 hover:text-zinc-200"
+            }`}
+          >
+            <FolderTree className="h-3.5 w-3.5" />
+            <span>File Treemap Heatmap</span>
           </button>
 
           <button
@@ -345,13 +368,38 @@ export default function EvidenceWall() {
             <DnaRadarChart contributors={report.contributors} />
           )}
 
-          {/* TAB 4: ANOMALY CASE FILES */}
+          {/* TAB 4: FILE TREEMAP HEATMAP */}
+          {activeTab === "heatmap" && (
+            <FileHeatmap
+              contributors={report.contributors}
+              onInspectFile={(file) =>
+                setDiffModal({
+                  isOpen: true,
+                  filePath: file.filePath,
+                  commitHash: file.lastCommitHash,
+                  authorName: file.primaryAuthor,
+                  commitMessage: `Updates to ${file.filePath}`,
+                })
+              }
+            />
+          )}
+
+          {/* TAB 5: ANOMALY CASE FILES */}
           {activeTab === "anomalies" && (
             <AnomalyCaseFiles
               anomalies={report.anomalies}
               contributors={report.contributors}
               analysisId={analysisId}
               onStartViva={handleStartViva}
+              onViewDiff={(anomaly) =>
+                setDiffModal({
+                  isOpen: true,
+                  filePath: "src/engine/collaborative_filter.py",
+                  commitHash: anomaly.commit_hash || "3f82a9d",
+                  authorName: anomaly.contributor_name,
+                  commitMessage: anomaly.evidence_summary,
+                })
+              }
             />
           )}
 
@@ -375,6 +423,16 @@ export default function EvidenceWall() {
           </div>
         </div>
       )}
+
+      {/* 6. Diff Inspector Modal */}
+      <DiffInspector
+        isOpen={diffModal.isOpen}
+        onClose={() => setDiffModal({ isOpen: false })}
+        filePath={diffModal.filePath}
+        commitHash={diffModal.commitHash}
+        authorName={diffModal.authorName}
+        commitMessage={diffModal.commitMessage}
+      />
     </div>
   );
 }

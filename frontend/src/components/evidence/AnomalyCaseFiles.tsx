@@ -10,6 +10,7 @@ import {
   ArrowRight,
   Filter,
   ShieldAlert,
+  Eye,
 } from "lucide-react";
 import { type Anomaly, type Contributor } from "@/lib/mock-data";
 
@@ -18,6 +19,7 @@ interface AnomalyCaseFilesProps {
   contributors: Contributor[];
   analysisId?: string;
   onStartViva?: (contributorId: string) => void;
+  onViewDiff?: (anomaly: Anomaly) => void;
 }
 
 export function AnomalyCaseFiles({
@@ -25,6 +27,7 @@ export function AnomalyCaseFiles({
   contributors,
   analysisId = "demo-smart-campus",
   onStartViva,
+  onViewDiff,
 }: AnomalyCaseFilesProps) {
   const [severityFilter, setSeverityFilter] = useState<string>("ALL");
   const [contributorFilter, setContributorFilter] = useState<string>("ALL");
@@ -177,20 +180,33 @@ export function AnomalyCaseFiles({
                     </span>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (onStartViva) {
-                        onStartViva(item.contributor_id);
-                      } else {
-                        window.location.href = `/viva/${analysisId}/${item.contributor_id}`;
-                      }
-                    }}
-                    className="inline-flex items-center justify-center space-x-2 rounded-xl bg-zinc-100 text-zinc-950 hover:bg-white px-4 py-2 font-mono text-xs font-semibold shadow-md transition"
-                  >
-                    <span>🎙️ Put in Hot Seat Viva Defense</span>
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </button>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {onViewDiff && (
+                      <button
+                        type="button"
+                        onClick={() => onViewDiff(item)}
+                        className="inline-flex items-center justify-center space-x-1.5 rounded-xl border border-white/10 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 px-3.5 py-2 font-mono text-xs transition"
+                      >
+                        <Eye className="h-3.5 w-3.5 text-cyan-400" />
+                        <span>Inspect Diff Proof</span>
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (onStartViva) {
+                          onStartViva(item.contributor_id);
+                        } else {
+                          window.location.href = `/viva/${analysisId}/${item.contributor_id}`;
+                        }
+                      }}
+                      className="inline-flex items-center justify-center space-x-2 rounded-xl bg-zinc-100 text-zinc-950 hover:bg-white px-4 py-2 font-mono text-xs font-semibold shadow-md transition"
+                    >
+                      <span>🎙️ Put in Hot Seat Viva Defense</span>
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             );
