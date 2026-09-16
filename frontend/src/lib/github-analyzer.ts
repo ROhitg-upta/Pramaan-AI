@@ -81,10 +81,21 @@ export async function analyzeGitHubRepoDirectly(
   }
 
   const { owner, repo } = meta;
-  const headers: HeadersInit = {
+
+  // Check for optional GitHub token in localStorage
+  const token =
+    typeof window !== "undefined"
+      ? localStorage.getItem("pramaan_gh_token")
+      : null;
+
+  const headers: Record<string, string> = {
     Accept: "application/vnd.github.v3+json",
     "User-Agent": "Pramaan-AI-Forensics",
   };
+
+  if (token && token.trim()) {
+    headers["Authorization"] = `Bearer ${token.trim()}`;
+  }
 
   onProgress?.(15, `Connecting to GitHub API for ${owner}/${repo}...`);
 
@@ -93,22 +104,42 @@ export async function analyzeGitHubRepoDirectly(
     headers,
   });
   if (!repoRes.ok) {
-    throw new Error(
-      `GitHub repository "${owner}/${repo}" not found or private (Status ${repoRes.status})`
-    );
+    if (repoRes.status === 404) {
+      throw new Error(
+        `GitHub repository "${owner}/${repo}" was not found or is private.`
+      );
+    } else if (repoRes.status === 403 || repoRes.status === 429) {
+      throw new Error(
+        `GitHub API rate limit reached for "${owner}/${repo}". Please provide a GitHub Personal Access Token.`
+      );
+    } else if (repoRes.status === 401) {
+      throw new Error(
+        `Invalid GitHub Personal Access Token provided for "${owner}/${repo}".`
+      );
+    } else {
+      throw new Error(
+        `Failed to access "${owner}/${repo}" (HTTP ${repoRes.status}).`
+      );
+    }
   }
   const repoData = await repoRes.json();
   const defaultBranch = repoData.default_branch || branch;
 
   onProgress?.(30, `Fetching commit history from branch '${defaultBranch}'...`);
 
-  // 2. Fetch Commits
+  // 2. Fetch Commits (per_page=50 for quick ingestion under 3 seconds)
   const commitsRes = await fetch(
-    `https://api.github.com/repos/${owner}/${repo}/commits?sha=${defaultBranch}&per_page=100`,
+    `https://api.github.com/repos/${owner}/${repo}/commits?sha=${defaultBranch}&per_page=50`,
     { headers }
   );
   if (!commitsRes.ok) {
-    throw new Error(`Failed to fetch commits for ${owner}/${repo}`);
+    if (commitsRes.status === 404) {
+      throw new Error(`Branch "${defaultBranch}" was not found in repository ${owner}/${repo}.`);
+    } else if (commitsRes.status === 403 || commitsRes.status === 429) {
+      throw new Error(`GitHub rate limit reached while fetching commits. Please enter a Personal Access Token.`);
+    } else {
+      throw new Error(`Failed to fetch commits for ${owner}/${repo} (HTTP ${commitsRes.status}).`);
+    }
   }
   const rawCommits = await commitsRes.json();
   if (!Array.isArray(rawCommits) || rawCommits.length === 0) {
@@ -334,7 +365,7 @@ export async function analyzeGitHubRepoDirectly(
   const integrityGrade =
     avgScore >= 80 ? "A" : avgScore >= 65 ? "B+" : avgScore >= 50 ? "C+" : "D";
 
-  const analysisId = `gh-${owner.toLowerCase()}-${repo.toLowerCase()}`;
+  const analysisId = `gh__${encodeURIComponent(owner.toLowerCase())}__${encodeURIComponent(repo.toLowerCase())}`;
 
   const fullReport: FullReportResponse = {
     analysis_id: analysisId,
@@ -352,11 +383,14 @@ export async function analyzeGitHubRepoDirectly(
     executive_summary: executiveSummary,
   };
 
-  // Cache in localStorage for client-side persistence across pages
+  // Cache in localStorage & sessionStorage for client-side persistence across pages
   if (typeof window !== "undefined") {
     try {
       localStorage.setItem(`pramaan_report_${analysisId}`, JSON.stringify(fullReport));
+      // Also cache with legacy id for backwards compatibility
+      localStorage.setItem(`pramaan_report_gh-${owner.toLowerCase()}-${repo.toLowerCase()}`, JSON.stringify(fullReport));
       localStorage.setItem(`pramaan_latest_id`, analysisId);
+      sessionStorage.setItem("pramaan_target_url", repoData.html_url || repoUrl);
     } catch {
       // Ignore
     }

@@ -21,6 +21,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { analyzeRepo } from "@/lib/api";
 
 export default function EvaluatorDashboard() {
   const router = useRouter();
@@ -34,10 +35,18 @@ export default function EvaluatorDashboard() {
   );
   const [isQueueing, setIsQueueing] = useState(false);
 
-  const handleSingleAudit = (e: React.FormEvent) => {
+  const handleSingleAudit = async (e: React.FormEvent) => {
     e.preventDefault();
     const url = repoUrl.trim() || "https://github.com/demo/smart-campus-app";
-    router.push("/investigate/demo-smart-campus");
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("pramaan_target_url", url);
+    }
+    try {
+      const res = await analyzeRepo(url, branch);
+      router.push(`/investigate/${res.analysis_id}`);
+    } catch {
+      router.push("/investigate/demo-smart-campus");
+    }
   };
 
   const handleBatchQueue = () => {

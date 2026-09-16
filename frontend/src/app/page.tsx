@@ -43,6 +43,9 @@ export default function HoollowStyledLandingPage() {
 
   const handleAudit = async (targetUrl = repoUrl) => {
     const urlToAnalyze = targetUrl.trim() || "https://github.com/demo/smart-campus-app";
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("pramaan_target_url", urlToAnalyze);
+    }
     setIsAuditing(true);
     try {
       const res = await analyzeRepo(urlToAnalyze, selectedBranch);

@@ -76,6 +76,11 @@ export async function analyzeRepo(
 ): Promise<{ analysis_id: string; status: string; message: string; isRealRepo: boolean }> {
   const cleanUrl = repoUrl.trim();
 
+  // Persist exact target URL in sessionStorage
+  if (typeof window !== "undefined") {
+    sessionStorage.setItem("pramaan_target_url", cleanUrl);
+  }
+
   // If user explicitly asks for demo
   if (cleanUrl === "demo" || cleanUrl.includes("demo-smart-campus")) {
     return {
@@ -107,10 +112,10 @@ export async function analyzeRepo(
     // FastAPI backend offline — seamlessly fall through to Direct GitHub API engine
   }
 
-  // 2. Direct GitHub Ingestion Engine for real repositories
+  // 2. Direct GitHub Ingestion Engine for real repositories (safe gh__ double underscore delimiter)
   const parsed = parseGitHubUrl(cleanUrl);
   if (parsed) {
-    const analysisId = `gh-${parsed.owner.toLowerCase()}-${parsed.repo.toLowerCase()}`;
+    const analysisId = `gh__${encodeURIComponent(parsed.owner.toLowerCase())}__${encodeURIComponent(parsed.repo.toLowerCase())}`;
     return {
       analysis_id: analysisId,
       status: "processing",
@@ -136,7 +141,7 @@ export async function getAnalysisStatus(
   pollCount = 0
 ): Promise<AnalysisStatusResponse> {
   // If FastAPI backend has this ID
-  if (!analysisId.startsWith("demo-") && !analysisId.startsWith("gh-")) {
+  if (!analysisId.startsWith("demo-") && !analysisId.startsWith("gh-") && !analysisId.startsWith("gh__")) {
     try {
       const res = await fetch(`${API_BASE_URL}/api/v1/analyze/${analysisId}/status`);
       if (res.ok) {
@@ -217,7 +222,7 @@ export async function getAnalysisReport(analysisId: string): Promise<FullReportR
   }
 
   // 2. Check live FastAPI backend
-  if (!analysisId.startsWith("demo-") && !analysisId.startsWith("gh-")) {
+  if (!analysisId.startsWith("demo-") && !analysisId.startsWith("gh-") && !analysisId.startsWith("gh__")) {
     try {
       const res = await fetch(`${API_BASE_URL}/api/v1/analyze/${analysisId}/report`);
       if (res.ok) {
@@ -233,15 +238,42 @@ export async function getAnalysisReport(analysisId: string): Promise<FullReportR
     }
   }
 
-  // 3. If analysisId is a gh-owner-repo format, analyze on-the-fly!
-  if (analysisId.startsWith("gh-")) {
-    const raw = analysisId.replace(/^gh-/, "");
-    const parts = raw.split("-");
-    if (parts.length >= 2) {
-      const owner = parts[0];
-      const repo = parts.slice(1).join("-");
+  // 3. If analysisId is a gh__ or gh- format, analyze on-the-fly!
+  if (analysisId.startsWith("gh__") || analysisId.startsWith("gh-")) {
+    let targetRepoUrl: string | null = null;
+
+    // Check sessionStorage first for exact entered URL
+    if (typeof window !== "undefined") {
+      const stored = sessionStorage.getItem("pramaan_target_url");
+      if (stored) {
+        targetRepoUrl = stored;
+      }
+    }
+
+    // Decode from analysisId if not in sessionStorage
+    if (!targetRepoUrl) {
+      if (analysisId.startsWith("gh__")) {
+        const raw = analysisId.replace(/^gh__/, "");
+        const [encodedOwner, encodedRepo] = raw.split("__");
+        if (encodedOwner && encodedRepo) {
+          const owner = decodeURIComponent(encodedOwner);
+          const repo = decodeURIComponent(encodedRepo);
+          targetRepoUrl = `https://github.com/${owner}/${repo}`;
+        }
+      } else {
+        const raw = analysisId.replace(/^gh-/, "");
+        const parts = raw.split("-");
+        if (parts.length >= 2) {
+          const owner = parts[0];
+          const repo = parts.slice(1).join("-");
+          targetRepoUrl = `https://github.com/${owner}/${repo}`;
+        }
+      }
+    }
+
+    if (targetRepoUrl) {
       try {
-        const data = await analyzeGitHubRepoDirectly(`https://github.com/${owner}/${repo}`);
+        const data = await analyzeGitHubRepoDirectly(targetRepoUrl);
         memoryReportCache.set(analysisId, data);
         return data;
       } catch (err) {
@@ -266,7 +298,7 @@ export async function getVivaQuestions(
   questionCount = 3
 ): Promise<VivaQuestionsResponse> {
   // 1. Try FastAPI backend
-  if (!analysisId.startsWith("demo-") && !analysisId.startsWith("gh-")) {
+  if (!analysisId.startsWith("demo-") && !analysisId.startsWith("gh-") && !analysisId.startsWith("gh__")) {
     try {
       const res = await fetch(`${API_BASE_URL}/api/v1/viva/${analysisId}/questions`, {
         method: "POST",
