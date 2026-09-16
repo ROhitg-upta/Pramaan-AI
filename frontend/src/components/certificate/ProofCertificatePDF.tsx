@@ -60,10 +60,46 @@ export function ProofCertificatePDF({
   data?: CertificateData;
 }) {
   const certificateRef = useRef<HTMLDivElement | null>(null);
+  const [isGeneratingPdf, setIsGeneratingPdf] = React.useState(false);
 
   const handlePrint = () => {
     if (typeof window !== "undefined") {
       window.print();
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    if (!certificateRef.current) return;
+    setIsGeneratingPdf(true);
+    try {
+      const html2canvas = (await import("html2canvas")).default;
+      const { jsPDF } = await import("jspdf");
+
+      const element = certificateRef.current;
+      const canvas = await html2canvas(element, {
+        scale: 3, // 300 DPI equivalent
+        useCORS: true,
+        backgroundColor: "#0c0d12",
+        logging: false,
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({
+        orientation: "landscape",
+        unit: "mm",
+        format: "a4",
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight, undefined, "FAST");
+      pdf.save(`Pramaan_Certificate_${data.githubUsername}_${data.auditId}.pdf`);
+    } catch (err) {
+      console.warn("jsPDF export failed, falling back to window.print():", err);
+      window.print();
+    } finally {
+      setIsGeneratingPdf(false);
     }
   };
 
@@ -72,30 +108,40 @@ export function ProofCertificatePDF({
   return (
     <div className="space-y-6">
       {/* Action Controls Bar (Hidden during print) */}
-      <div className="no-print flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-white/10 bg-zinc-900/80 p-4 backdrop-blur-xl shadow-xl">
+      <div className="no-print flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-zinc-800 bg-zinc-950/80 p-4 backdrop-blur-xl shadow-xl">
         <div className="flex items-center space-x-3 font-mono text-xs text-zinc-400">
           <Link
             href={`/u/${data.githubUsername}`}
             className="inline-flex items-center space-x-1.5 hover:text-zinc-100 transition"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
-            <span>Public Profile</span>
+            <span>Candidate Profile</span>
           </Link>
-          <span className="text-zinc-600">•</span>
+          <span className="text-zinc-700">•</span>
           <span className="text-emerald-400 font-semibold flex items-center space-x-1">
             <CheckCircle2 className="h-3.5 w-3.5" />
-            <span>Verified 300 DPI Vector Diploma</span>
+            <span>Official 300 DPI Vector Diploma</span>
           </span>
         </div>
 
-        <div className="flex items-center space-x-3 font-mono text-xs">
+        <div className="flex items-center space-x-2.5 font-mono text-xs">
           <button
             type="button"
             onClick={handlePrint}
-            className="inline-flex items-center space-x-2 rounded-xl bg-white text-zinc-950 hover:bg-zinc-200 px-5 py-2.5 font-bold shadow-md transition"
+            className="inline-flex items-center space-x-1.5 rounded-xl border border-zinc-800 bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 px-4 py-2 transition"
           >
-            <Download className="h-4 w-4" />
-            <span>Download Official PDF / Print Diploma</span>
+            <Printer className="h-3.5 w-3.5" />
+            <span>Print Layout</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleDownloadPdf}
+            disabled={isGeneratingPdf}
+            className="inline-flex items-center space-x-2 rounded-xl bg-white text-zinc-950 hover:bg-zinc-200 px-5 py-2 font-medium shadow-sm transition disabled:opacity-50"
+          >
+            <Download className={`h-4 w-4 ${isGeneratingPdf ? "animate-bounce" : ""}`} />
+            <span>{isGeneratingPdf ? "Generating Vector PDF..." : "Download Official PDF Certificate"}</span>
           </button>
         </div>
       </div>
@@ -136,18 +182,18 @@ export function ProofCertificatePDF({
           </div>
 
           <h1 className="font-display text-2xl sm:text-4xl font-extrabold tracking-tight text-zinc-100 uppercase">
-            Certificate of Verified Engineering Proof
+            CERTIFICATE OF AUTHENTIC ENGINEERING PROOF
           </h1>
 
           <p className="font-mono text-xs text-zinc-400">
-            Official Academic &amp; Autonomous Forensic Attestation
+            Issued under the Hoollow Proof-of-Work Protocol • Academic Integrity Verification
           </p>
         </div>
 
         {/* 2. Recipient Attribution Statement */}
         <div className="relative text-center max-w-2xl mx-auto space-y-3 mb-8">
           <p className="font-body text-xs sm:text-sm text-zinc-400 italic">
-            This document certifies that the candidate has successfully passed comprehensive autonomous source code telemetry, multi-tier AST complexity classification, and live oral defense:
+            This certifies that the following candidate has successfully demonstrated genuine code authorship, iterative debugging cadence, and architectural comprehension under autonomous AI telemetry:
           </p>
 
           <div className="py-2">

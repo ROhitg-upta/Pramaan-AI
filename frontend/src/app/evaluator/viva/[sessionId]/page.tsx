@@ -389,13 +389,21 @@ export default function EvaluatorVivaWorkbench() {
                   <div className="text-[10px] text-zinc-400 break-all">
                     SHA-256: {sealedHash}
                   </div>
-                  <Link
-                    href="/verdict/demo-smart-campus"
-                    className="inline-flex items-center space-x-1 text-emerald-400 hover:underline text-xs pt-1"
-                  >
-                    <span>View Official Thermal Receipt</span>
-                    <ArrowRight className="h-3 w-3" />
-                  </Link>
+                  <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+                    <Link
+                      href="/evaluator/audit/demo-smart-campus/certificate"
+                      className="inline-flex items-center space-x-1.5 rounded-lg bg-white px-3 py-1.5 text-zinc-950 hover:bg-zinc-200 text-xs font-medium shadow-sm transition"
+                    >
+                      <span>Download PDF Diploma 📄</span>
+                    </Link>
+                    <Link
+                      href="/verdict/demo-smart-campus"
+                      className="inline-flex items-center space-x-1 text-emerald-400 hover:underline text-xs"
+                    >
+                      <span>View Thermal Receipt</span>
+                      <ArrowRight className="h-3 w-3" />
+                    </Link>
+                  </div>
                 </div>
               )}
             </div>

@@ -18,6 +18,7 @@ import {
   Layers,
   Code2,
   Calendar,
+  FileCheck,
 } from "lucide-react";
 
 export default function PublicProofProfile() {
@@ -79,8 +80,16 @@ export default function PublicProofProfile() {
             </div>
           </div>
 
-          {/* Verification Badge */}
-          <div>
+          {/* Verification Badge & PDF Certificate Action */}
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href="/evaluator/audit/demo-smart-campus/certificate"
+              className="inline-flex items-center space-x-2 rounded-xl bg-white px-4 py-2 font-mono text-xs font-medium text-zinc-950 hover:bg-zinc-200 transition shadow-sm"
+            >
+              <FileCheck className="h-3.5 w-3.5 text-zinc-950" />
+              <span>Download Official PDF Certificate</span>
+            </Link>
+
             {!isAryan ? (
               <div className="inline-flex items-center space-x-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 font-mono text-xs font-bold text-emerald-400 shadow-md">
                 <CheckCircle2 className="h-4 w-4" />

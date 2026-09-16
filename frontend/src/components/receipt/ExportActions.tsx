@@ -56,14 +56,23 @@ https://pramaan.ai/verdict/${analysisId}
   };
 
   return (
-    <div className="w-full max-w-xl mx-auto mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 print:hidden">
+    <div className="w-full max-w-2xl mx-auto mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 print:hidden">
+      {/* 0. Official Vector PDF Diploma Certificate */}
+      <Link
+        href={`/evaluator/audit/${analysisId}/certificate`}
+        className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-white text-zinc-950 hover:bg-zinc-200 text-xs font-mono font-medium shadow-sm transition"
+      >
+        <Download className="w-3.5 h-3.5 text-zinc-950" />
+        <span>Download Official PDF Certificate 📄</span>
+      </Link>
+
       {/* 1. Download / Print PDF */}
       <button
         onClick={handlePrintPdf}
-        className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl border border-zinc-700 bg-zinc-900/90 hover:bg-zinc-800 text-zinc-200 text-xs font-mono font-semibold shadow-lg hover:border-zinc-500 transition"
+        className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl border border-zinc-800 bg-zinc-900/90 hover:bg-zinc-800 text-zinc-200 text-xs font-mono font-semibold shadow-lg hover:border-zinc-700 transition"
       >
         <Download className="w-3.5 h-3.5 text-zinc-400" />
-        <span>Print PDF Report</span>
+        <span>Print Receipt</span>
       </button>
 
       {/* 2. Copy Receipt Text */}

@@ -45,16 +45,16 @@ export default function EvaluatorSettingsPage() {
   return (
     <div className="relative mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800 pb-5">
         <div>
           <div className="flex items-center space-x-2 font-mono text-xs text-zinc-500 mb-2">
-            <Link href="/evaluator/dashboard" className="hover:text-zinc-300">
+            <Link href="/evaluator/dashboard" className="hover:text-zinc-300 transition">
               Evaluator Dashboard
             </Link>
             <span>/</span>
             <span className="text-zinc-300">Institution Settings</span>
           </div>
-          <h1 className="font-display text-2xl sm:text-3xl font-bold text-zinc-100">
+          <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-zinc-100">
             Enterprise Infrastructure &amp; Settings
           </h1>
           <p className="mt-1 font-mono text-xs text-zinc-400">
@@ -64,10 +64,10 @@ export default function EvaluatorSettingsPage() {
       </div>
 
       {/* 1. Database Infrastructure Status Card */}
-      <div className="rounded-2xl border border-white/10 bg-zinc-900/60 p-6 backdrop-blur-xl shadow-2xl space-y-5">
-        <div className="flex items-center justify-between border-b border-white/5 pb-3">
+      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 backdrop-blur-xl shadow-xl space-y-5">
+        <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
           <div className="flex items-center space-x-2.5">
-            <Database className="h-5 w-5 text-cyan-400" />
+            <Database className="h-5 w-5 text-emerald-400" />
             <h3 className="font-display text-base font-bold text-zinc-100">
               Database Infrastructure Status
             </h3>
@@ -79,19 +79,19 @@ export default function EvaluatorSettingsPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 font-mono text-xs">
-          <div className="rounded-xl border border-white/5 bg-zinc-950 p-4">
+          <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
             <div className="text-zinc-500 text-[10px] uppercase">Connection Endpoint</div>
             <div className="font-bold text-zinc-200 mt-1 truncate">ep-cool-neon.us-east-2.aws</div>
             <div className="text-[10px] text-emerald-400 mt-1">SSL Mode: Required (TLS 1.3)</div>
           </div>
 
-          <div className="rounded-xl border border-white/5 bg-zinc-950 p-4">
+          <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
             <div className="text-zinc-500 text-[10px] uppercase">Query Latency</div>
             <div className="text-2xl font-bold text-zinc-100 mt-1">18 ms</div>
             <div className="text-[10px] text-zinc-500 mt-1">AWS us-east-2 to Vercel Edge</div>
           </div>
 
-          <div className="rounded-xl border border-white/5 bg-zinc-950 p-4">
+          <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
             <div className="text-zinc-500 text-[10px] uppercase">Table Records Synced</div>
             <div className="text-2xl font-bold text-zinc-100 mt-1">22 Records</div>
             <div className="text-[10px] text-zinc-500 mt-1">Users: 3 • Audits: 12 • Vivas: 7</div>
@@ -100,8 +100,8 @@ export default function EvaluatorSettingsPage() {
       </div>
 
       {/* 2. Organization Branding Card */}
-      <div className="rounded-2xl border border-white/10 bg-zinc-900/60 p-6 backdrop-blur-xl shadow-2xl space-y-4">
-        <div className="flex items-center space-x-2.5 border-b border-white/5 pb-3">
+      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 backdrop-blur-xl shadow-xl space-y-4">
+        <div className="flex items-center space-x-2.5 border-b border-zinc-800 pb-3">
           <Building className="h-5 w-5 text-zinc-300" />
           <h3 className="font-display text-base font-bold text-zinc-100">
             University &amp; Organization Branding
@@ -115,7 +115,7 @@ export default function EvaluatorSettingsPage() {
               type="text"
               value={orgName}
               onChange={(e) => setOrgName(e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-zinc-950 px-3.5 py-2.5 text-zinc-100 focus:outline-none focus:ring-1 focus:ring-cyan-500/50"
+              className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-zinc-100 focus:outline-none focus:border-zinc-600"
             />
           </div>
 
@@ -125,17 +125,17 @@ export default function EvaluatorSettingsPage() {
               type="text"
               value={academicTerm}
               onChange={(e) => setAcademicTerm(e.target.value)}
-              className="w-full rounded-xl border border-white/10 bg-zinc-950 px-3.5 py-2.5 text-zinc-100 focus:outline-none focus:ring-1 focus:ring-cyan-500/50"
+              className="w-full rounded-xl border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-zinc-100 focus:outline-none focus:border-zinc-600"
             />
           </div>
         </div>
       </div>
 
       {/* 3. Automated Webhook Notifications Card */}
-      <div className="rounded-2xl border border-white/10 bg-zinc-900/60 p-6 backdrop-blur-xl shadow-2xl space-y-4 font-mono text-xs">
-        <div className="flex items-center justify-between border-b border-white/5 pb-3">
+      <div className="rounded-2xl border border-zinc-800 bg-zinc-900/40 p-6 backdrop-blur-xl shadow-xl space-y-4 font-mono text-xs">
+        <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
           <div className="flex items-center space-x-2.5">
-            <Bell className="h-5 w-5 text-indigo-400" />
+            <Bell className="h-5 w-5 text-zinc-300" />
             <h3 className="font-display text-base font-bold text-zinc-100">
               Automated Webhook Dispatch
             </h3>

@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { analyzeRepo } from "@/lib/api";
 import { useCountUp } from "@/hooks/useCountUp";
+import { LiveCodeSandbox } from "@/components/landing/LiveCodeSandbox";
 
 export default function HoollowStyledLandingPage() {
   const router = useRouter();
@@ -69,9 +70,9 @@ export default function HoollowStyledLandingPage() {
   const { value: secondsStat } = useCountUp(45, 2000);
 
   return (
-    <div className="relative min-h-screen bg-black text-white overflow-x-hidden flex flex-col justify-between selection:bg-purple-500/30 selection:text-purple-200">
+    <div className="relative min-h-screen bg-[#09090b] text-white overflow-x-hidden flex flex-col justify-between selection:bg-emerald-500/20 selection:text-emerald-200">
       {/* 1. Main Hero Container */}
-      <main className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 pb-20 flex-1 flex flex-col justify-center">
+      <main className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 pb-16 flex-1 flex flex-col justify-center">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           
           {/* Left Column: Hero Narrative */}
@@ -82,9 +83,9 @@ export default function HoollowStyledLandingPage() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="inline-flex items-center space-x-2 rounded-full border border-purple-500/30 bg-purple-950/20 px-3.5 py-1 text-xs font-mono text-purple-300 backdrop-blur-md mb-6"
+              className="inline-flex items-center space-x-2 rounded-full border border-emerald-500/20 bg-emerald-950/20 px-3.5 py-1 text-xs font-mono text-emerald-400 backdrop-blur-md mb-6"
             >
-              <span className="h-1.5 w-1.5 rounded-full bg-purple-400 animate-pulse" />
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
               <span>✦ HOOLLOW PROTOCOL • PROOF OF WORK &gt; DEGREE</span>
             </motion.div>
 
@@ -93,10 +94,10 @@ export default function HoollowStyledLandingPage() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
-              className="font-display text-5xl sm:text-7xl lg:text-8xl font-black tracking-tight leading-[0.95] text-white"
+              className="font-display text-5xl sm:text-7xl lg:text-8xl font-bold tracking-tight leading-[0.95] text-zinc-100"
             >
               Truth in <br />
-              <span className="text-[#c084fc] drop-shadow-[0_0_35px_rgba(192,132,252,0.35)]">
+              <span className="text-zinc-100">
                 Building.
               </span>
             </motion.h1>
@@ -122,7 +123,7 @@ export default function HoollowStyledLandingPage() {
             >
               <button
                 onClick={() => setShowInputModal(true)}
-                className="group relative inline-flex items-center space-x-3 rounded-xl bg-white px-7 py-3.5 font-mono text-sm font-bold text-black shadow-[0_0_30px_rgba(255,255,255,0.2)] hover:bg-zinc-200 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                className="group relative inline-flex items-center space-x-3 rounded-xl bg-white px-7 py-3.5 font-mono text-sm font-medium text-zinc-950 hover:bg-zinc-200 active:scale-[0.98] transition-all shadow-sm"
               >
                 <span>Audit Repository</span>
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -130,9 +131,9 @@ export default function HoollowStyledLandingPage() {
 
               <button
                 onClick={handleExploreDemo}
-                className="inline-flex items-center space-x-2 rounded-xl border border-white/20 bg-zinc-900/60 px-6 py-3.5 font-mono text-sm font-medium text-zinc-300 hover:border-white/40 hover:bg-zinc-900 hover:text-white transition active:scale-[0.98]"
+                className="inline-flex items-center space-x-2 rounded-xl border border-zinc-800 bg-zinc-900/60 px-6 py-3.5 font-mono text-sm font-medium text-zinc-300 hover:border-zinc-700 hover:bg-zinc-800 hover:text-white transition active:scale-[0.98]"
               >
-                <Zap className="h-4 w-4 text-purple-400" />
+                <Zap className="h-4 w-4 text-zinc-400" />
                 <span>Explore Live Demo</span>
               </button>
             </motion.div>
@@ -163,7 +164,7 @@ export default function HoollowStyledLandingPage() {
               </div>
 
               <div>
-                <div className="font-display text-2xl sm:text-3xl font-extrabold text-[#c084fc] tracking-tight">
+                <div className="font-display text-2xl sm:text-3xl font-bold text-emerald-400 tracking-tight">
                   100%
                 </div>
                 <div className="mt-1 font-mono text-[11px] uppercase tracking-wider text-zinc-500">
@@ -180,11 +181,8 @@ export default function HoollowStyledLandingPage() {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="lg:col-span-5 flex justify-center items-center relative"
           >
-            {/* Ambient Backlight Glow */}
-            <div className="absolute -inset-4 bg-gradient-to-r from-purple-600/20 to-cyan-500/20 rounded-3xl blur-2xl -z-10 pointer-events-none" />
-
             {/* The Looping Pixel Art Team Video */}
-            <div className="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-black/80 max-w-[540px] w-full">
+            <div className="relative rounded-2xl overflow-hidden border border-zinc-800 shadow-2xl bg-zinc-950 max-w-[540px] w-full">
               <video
                 src="/builders_loop.mp4"
                 autoPlay
@@ -196,7 +194,7 @@ export default function HoollowStyledLandingPage() {
 
               {/* Subtle Overlay Badge */}
               <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between pointer-events-none">
-                <div className="flex items-center space-x-2 bg-black/70 backdrop-blur-md border border-white/10 rounded-full px-3 py-1">
+                <div className="flex items-center space-x-2 bg-zinc-950/80 backdrop-blur-md border border-zinc-800 rounded-full px-3 py-1">
                   <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
                   <span className="font-mono text-[11px] text-zinc-300">
                     Real Builders Squad • Autonomous Viva Ready
@@ -210,15 +208,22 @@ export default function HoollowStyledLandingPage() {
       </main>
 
       {/* ══════════════════════════════════════════════════════════════════ */}
+      {/* SECTION: HOMEPAGE LIVE AST CODE PLAYGROUND                         */}
+      {/* ══════════════════════════════════════════════════════════════════ */}
+      <section className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        <LiveCodeSandbox />
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════════ */}
       {/* SECTION 1: HOW PRAMAAN AI WORKS (The 5-Act Forensic Pipeline)       */}
       {/* ══════════════════════════════════════════════════════════════════ */}
-      <section className="relative z-10 py-24 border-t border-white/10 bg-zinc-950/70">
+      <section className="relative z-10 py-20 border-t border-zinc-800/80 bg-zinc-950/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto">
-            <div className="inline-flex items-center space-x-2 text-[11px] font-mono tracking-widest text-purple-400 uppercase mb-2">
+            <div className="inline-flex items-center space-x-2 text-[11px] font-mono tracking-widest text-emerald-400 uppercase mb-2">
               <span>THE 5-ACT FORENSIC ARC</span>
             </div>
-            <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-white">
+            <h2 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-zinc-100">
               From Suspicion to Mathematical Certainty
             </h2>
             <p className="mt-3 font-body text-sm sm:text-base text-zinc-400">
