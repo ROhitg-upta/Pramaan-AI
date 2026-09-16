@@ -17,7 +17,7 @@ echo.
 
 REM 1. Start Backend in a dedicated window
 echo [*] Launching Forensic Backend Engine on http://localhost:8000 ...
-start "Pramaan AI — Backend (FastAPI)" cmd /k "cd backend && if exist venv\Scripts\activate.bat (call venv\Scripts\activate.bat) && python -m uvicorn app.main:app --reload --port 8000"
+start "Pramaan AI — Backend (FastAPI)" cmd /k "cd backend && venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000"
 
 REM Wait 2 seconds
 timeout /t 2 /nobreak >nul
