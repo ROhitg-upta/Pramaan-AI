@@ -1,0 +1,158 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* ══════════════ BACKGROUNDS ══════════════ */
+  --bg-void: #050507;
+  --bg-obsidian: #0A0D14;
+  --bg-card: #0F1629;
+  --bg-card-hover: #151D35;
+  --bg-elevated: #1A2342;
+  --bg-code: #0D1117;
+  --bg-input: #0C1220;
+
+  /* ══════════════ BORDERS & DIVIDERS ══════════════ */
+  --border-subtle: #1E293B;
+  --border-active: #334155;
+  --border-glow-emerald: rgba(16, 185, 129, 0.4);
+  --border-glow-crimson: rgba(239, 68, 68, 0.4);
+  --border-glow-cyan: rgba(6, 182, 212, 0.4);
+
+  /* ══════════════ FORENSIC STATUS NEONS ══════════════ */
+  --neon-emerald: #10B981;
+  --neon-emerald-soft: #059669;
+  --neon-emerald-glow: 0 0 20px rgba(16, 185, 129, 0.35), 0 0 60px rgba(16, 185, 129, 0.1);
+
+  --neon-amber: #F59E0B;
+  --neon-amber-soft: #D97706;
+  --neon-amber-glow: 0 0 20px rgba(245, 158, 11, 0.35), 0 0 60px rgba(245, 158, 11, 0.1);
+
+  --neon-crimson: #EF4444;
+  --neon-crimson-soft: #DC2626;
+  --neon-crimson-glow: 0 0 20px rgba(239, 68, 68, 0.35), 0 0 60px rgba(239, 68, 68, 0.1);
+
+  --neon-cyan: #06B6D4;
+  --neon-cyan-soft: #0891B2;
+  --neon-cyan-glow: 0 0 20px rgba(6, 182, 212, 0.35), 0 0 60px rgba(6, 182, 212, 0.1);
+
+  --neon-purple: #8B5CF6;
+  --neon-purple-soft: #7C3AED;
+  --neon-purple-glow: 0 0 20px rgba(139, 92, 246, 0.35), 0 0 60px rgba(139, 92, 246, 0.1);
+
+  /* ══════════════ TEXT HIERARCHY ══════════════ */
+  --text-primary: #F1F5F9;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --text-ghost: #475569;
+
+  /* ══════════════ GRADIENTS ══════════════ */
+  --gradient-hero: linear-gradient(135deg, #0F172A 0%, #1E1B4B 50%, #0F172A 100%);
+  --gradient-card-shine: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, transparent 50%);
+  --gradient-scan-line: linear-gradient(180deg, transparent 0%, rgba(6, 182, 212, 0.08) 50%, transparent 100%);
+}
+
+/* Base Body Resets */
+body {
+  background-color: var(--bg-void);
+  color: var(--text-primary);
+  font-family: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ══════════════ MONOSPACE FORENSIC SCROLLBAR ══════════════ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-obsidian);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1E293B;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* ══════════════ ATMOSPHERIC BACKGROUNDS ══════════════ */
+.forensic-grid-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle at 1px 1px, rgba(148, 163, 184, 0.08) 1px, transparent 0);
+  background-size: 32px 32px;
+  animation: gridDrift 120s linear infinite;
+}
+
+.forensic-vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(circle at center, transparent 35%, rgba(5, 5, 7, 0.75) 90%, rgba(5, 5, 7, 0.95) 100%);
+}
+
+/* ══════════════ SCAN LINE SWEEP EFFECT ══════════════ */
+.scan-sweep {
+  position: relative;
+  overflow: hidden;
+}
+
+.scan-sweep::after {
+  content: "";
+  position: fixed;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
+  box-shadow: var(--neon-cyan-glow);
+  animation: scanSweep 4s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 50;
+}
+
+/* ══════════════ THERMAL RECEIPT TORN EDGES ══════════════ */
+.thermal-receipt-edge {
+  clip-path: polygon(
+    0% 2%, 5% 0%, 10% 2%, 15% 1%, 20% 3%, 25% 0%, 30% 2%,
+    35% 1%, 40% 3%, 45% 0%, 50% 2%, 55% 1%, 60% 3%, 65% 0%,
+    70% 2%, 75% 1%, 80% 3%, 85% 0%, 90% 2%, 95% 1%, 100% 2%,
+    100% 98%, 95% 100%, 90% 98%, 85% 99%, 80% 97%, 75% 100%,
+    70% 98%, 65% 99%, 60% 97%, 55% 100%, 50% 98%, 45% 99%,
+    40% 97%, 35% 100%, 30% 98%, 25% 99%, 20% 97%, 15% 100%,
+    10% 98%, 5% 99%, 0% 98%
+  );
+}
+
+.thermal-paper-noise {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 0);
+  background-size: 3px 3px;
+}
+
+/* Cyber Glow Helpers */
+.glow-emerald {
+  box-shadow: var(--neon-emerald-glow);
+}
+
+.glow-crimson {
+  box-shadow: var(--neon-crimson-glow);
+}
+
+.glow-cyan {
+  box-shadow: var(--neon-cyan-glow);
+}
+
+.glow-amber {
+  box-shadow: var(--neon-amber-glow);
+}
+
+.glow-purple {
+  box-shadow: var(--neon-purple-glow);
+}
