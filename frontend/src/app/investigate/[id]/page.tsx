@@ -326,18 +326,20 @@ export default function InvestigationRoom() {
     <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       {/* Top Breadcrumb & Status Bar */}
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
-        <div className="flex items-center space-x-2.5 font-mono text-xs">
-          <GitBranch className="h-4 w-4 text-emerald-400" />
-          <span className="text-zinc-400">Auditing:</span>
-          <span className="font-semibold text-zinc-100">
-            {analysisId === "demo-smart-campus"
-              ? "demo/smart-campus-app"
-              : `repo/${analysisId.slice(0, 8)}`}
-          </span>
-          <span className="text-zinc-600">::</span>
-          <span className="rounded bg-white/5 px-1.5 py-0.5 text-[10px] text-zinc-400">
-            {isSimulation ? "Mock Forensic Engine" : "FastAPI Worker"}
-          </span>
+        <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
+          <div className="inline-flex items-center space-x-1.5 rounded-full border border-emerald-500/20 bg-emerald-950/20 px-2.5 py-0.5 text-[11px] font-mono text-emerald-400">
+            <span>✦ HOOLLOW PROTOCOL • PROOF OF WORK &gt; DEGREE</span>
+          </div>
+          <span className="text-zinc-600 hidden sm:inline">•</span>
+          <div className="flex items-center space-x-1.5 text-zinc-400">
+            <GitBranch className="h-3.5 w-3.5 text-emerald-400" />
+            <span>Auditing:</span>
+            <span className="font-semibold text-zinc-100">
+              {analysisId === "demo-smart-campus"
+                ? "demo/smart-campus-app"
+                : `repo/${analysisId.slice(0, 8)}`}
+            </span>
+          </div>
         </div>
 
         <div className="flex items-center space-x-3">
@@ -432,7 +434,15 @@ export default function InvestigationRoom() {
                   </p>
                 </div>
 
-                <div className="flex items-center space-x-3">
+                <div className="flex flex-col sm:flex-row items-center gap-3">
+                  <a
+                    href="https://hoollow.com"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center space-x-1.5 rounded-xl border border-white/10 bg-zinc-900 px-4 py-3 font-mono text-xs text-zinc-300 hover:border-emerald-500/40 hover:text-emerald-400 transition-all"
+                  >
+                    <span>Export to Hoollow Profile ↗</span>
+                  </a>
                   <button
                     onClick={() => router.push(`/evidence/${analysisId}`)}
                     className="inline-flex items-center space-x-2 rounded-xl bg-emerald-400 px-6 py-3 font-mono text-sm font-semibold text-zinc-950 shadow-lg shadow-emerald-500/20 hover:bg-emerald-300 active:scale-95 transition-all"
@@ -441,6 +451,14 @@ export default function InvestigationRoom() {
                     <ArrowRight className="h-4 w-4" />
                   </button>
                 </div>
+              </div>
+
+              {/* Hoollow Proof-of-Work Standard Watermark */}
+              <div className="mt-5 border-t border-white/5 pt-3 flex items-center justify-between font-mono text-[11px] text-zinc-500">
+                <span className="font-semibold text-emerald-500/80">
+                  VERIFIED UNDER HOOLLOW PROOF-OF-WORK STANDARD
+                </span>
+                <span className="text-zinc-600">Horizon Hackathon 2026</span>
               </div>
             </motion.div>
           )}

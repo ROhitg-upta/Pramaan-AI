@@ -46,7 +46,15 @@ export default function RootLayout({
           <Navbar />
           <main className="flex-1">{children}</main>
           <footer className="border-t border-white/5 py-6 text-center font-mono text-xs text-zinc-600">
-            Pramaan AI • Proof of Work Engine • Built for Horizon 2026
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
+              <span>Pramaan AI</span>
+              <span className="hidden sm:inline">•</span>
+              <span className="text-emerald-500/80 font-medium">
+                VERIFIED UNDER HOOLLOW PROOF-OF-WORK STANDARD
+              </span>
+              <span className="hidden sm:inline">•</span>
+              <span>Horizon 2026</span>
+            </div>
           </footer>
         </div>
       </body>

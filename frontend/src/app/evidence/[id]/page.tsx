@@ -5,14 +5,11 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   GitBranch,
-  ShieldAlert,
   ArrowLeft,
-  Layers,
-  Clock,
-  Radar,
-  Flame,
-  User,
+  Sparkles,
   AlertTriangle,
+  ExternalLink,
+  ShieldCheck,
 } from "lucide-react";
 import { getAnalysisReport } from "@/lib/api";
 import { type FullReportResponse } from "@/lib/mock-data";
@@ -35,31 +32,39 @@ export default function EvidenceWallShell() {
   return (
     <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       {/* Header */}
-      <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-5">
         <div>
-          <div className="flex items-center space-x-2">
+          <div className="flex flex-wrap items-center gap-2 mb-2">
             <Link
               href={`/investigate/${analysisId}`}
               className="inline-flex items-center space-x-1 font-mono text-xs text-zinc-500 hover:text-zinc-300 transition"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
-              <span>Back to Investigation</span>
+              <span>Back to Scanning</span>
             </Link>
             <span className="text-zinc-600">/</span>
-            <span className="font-mono text-xs text-emerald-400 font-semibold uppercase">
-              ACT 3: The Evidence Wall
-            </span>
+            <div className="inline-flex items-center space-x-1.5 rounded-full border border-emerald-500/20 bg-emerald-950/20 px-2.5 py-0.5 text-[11px] font-mono text-emerald-400">
+              <span>✦ HOOLLOW PROTOCOL • PROOF OF WORK &gt; DEGREE</span>
+            </div>
           </div>
-          <h1 className="mt-2 font-display text-2xl sm:text-3xl font-bold text-zinc-100">
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-zinc-100">
             {report?.repo_url || "Repository Forensic Evidence Wall"}
           </h1>
-          <p className="mt-1 font-body text-sm text-zinc-400">
-            Comprehensive audit dossier: Contributor DNA, Commit Evolution Timeline, and Anomaly Profiles.
+          <p className="mt-1 font-mono text-xs text-emerald-400/90">
+            &ldquo;Degrees can be faked. Commits can be copied. Proof of Work cannot.&rdquo;
           </p>
         </div>
 
         <div className="flex items-center space-x-3">
-          <span className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-1.5 font-mono text-xs font-semibold text-emerald-400">
+          <a
+            href="https://hoollow.com"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center space-x-1.5 rounded-xl border border-white/10 bg-zinc-900 px-3.5 py-2 font-mono text-xs text-zinc-300 hover:border-emerald-500/40 hover:text-emerald-400 transition"
+          >
+            <span>Export to Hoollow Profile ↗</span>
+          </a>
+          <span className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-2 font-mono text-xs font-semibold text-emerald-400">
             Integrity: {report?.integrity_grade || "C+"}
           </span>
         </div>
@@ -141,15 +146,46 @@ export default function EvidenceWallShell() {
                 </div>
 
                 <div className="mt-6 border-t border-white/5 pt-4 flex items-center justify-between">
-                  <span className="font-mono text-[11px] text-zinc-400 uppercase font-semibold">
+                  {contrib.pramaan_score && contrib.pramaan_score >= 75 ? (
+                    <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 font-mono text-[10px] text-emerald-400 font-semibold flex items-center space-x-1">
+                      <span>✓</span>
+                      <span>Hoollow Verified Builder</span>
+                    </span>
+                  ) : contrib.anomaly_flags.length > 0 || (contrib.pramaan_score && contrib.pramaan_score < 40) ? (
+                    <span className="rounded-full border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 font-mono text-[10px] text-rose-400 font-semibold flex items-center space-x-1">
+                      <span>✕</span>
+                      <span>Fails Proof-of-Work Standard</span>
+                    </span>
+                  ) : (
+                    <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 font-mono text-[10px] text-amber-400 font-semibold flex items-center space-x-1">
+                      <span>!</span>
+                      <span>Insufficient Code Complexity</span>
+                    </span>
+                  )}
+                  <span className="font-mono text-[10px] text-zinc-500 uppercase">
                     {contrib.verdict.replace(/_/g, " ")}
-                  </span>
-                  <span className="rounded bg-white/5 px-2 py-1 font-mono text-[10px] text-zinc-400">
-                    Ready for Viva
                   </span>
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* Hoollow Watermark Banner */}
+          <div className="rounded-xl border border-white/5 bg-zinc-950 p-4 flex flex-col sm:flex-row items-center justify-between text-xs font-mono text-zinc-500 gap-3">
+            <div className="flex items-center space-x-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              <span className="font-semibold text-emerald-500/80">
+                VERIFIED UNDER HOOLLOW PROOF-OF-WORK STANDARD
+              </span>
+            </div>
+            <a
+              href="https://hoollow.com"
+              target="_blank"
+              rel="noreferrer"
+              className="text-emerald-400 hover:text-emerald-300 transition"
+            >
+              Export to Hoollow Profile ↗
+            </a>
           </div>
         </div>
       )}

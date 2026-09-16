@@ -95,11 +95,9 @@ export default function DeveloperWorkbench() {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="inline-flex items-center space-x-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-3.5 py-1 text-xs font-mono text-emerald-400"
+          className="inline-flex items-center space-x-2 rounded-full border border-emerald-500/20 bg-emerald-950/20 px-3.5 py-1 text-xs font-mono text-emerald-400 shadow-sm"
         >
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span>Horizon 2026 • Powered by Hoollow Proof of Work</span>
-          <span className="text-emerald-500/60">➔</span>
+          <span>✦ HOOLLOW PROTOCOL • PROOF OF WORK &gt; DEGREE</span>
         </motion.div>
 
         {/* Crisp Developer Headline */}
@@ -115,11 +113,22 @@ export default function DeveloperWorkbench() {
           </span>
         </motion.h1>
 
+        {/* Core Mission Sub-tagline */}
+        <motion.div
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.18 }}
+          className="mt-4 inline-flex items-center space-x-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-4 py-1.5 font-mono text-xs sm:text-sm text-emerald-300"
+        >
+          <Sparkles className="h-3.5 w-3.5 text-emerald-400" />
+          <span>&ldquo;Degrees can be faked. Commits can be copied. Proof of Work cannot.&rdquo;</span>
+        </motion.div>
+
         {/* Subtitle */}
         <motion.p
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
+          transition={{ duration: 0.5, delay: 0.25 }}
           className="mt-4 font-body text-base sm:text-lg text-zinc-400 max-w-2xl leading-relaxed"
         >
           Autonomous code forensics and line-targeted viva defense. We analyze commit cadence, detect 3 AM AI dumps, and verify genuine repository authorship.
@@ -409,21 +418,47 @@ export default function DeveloperWorkbench() {
                   )}
                 </div>
 
-                <div className="mt-4 border-t border-white/5 pt-3">
-                  <span
-                    className={`font-mono text-[10px] uppercase font-semibold ${
-                      contrib.verdict === "VERIFIED_BUILDER"
-                        ? "text-emerald-400"
-                        : contrib.verdict === "GHOST_CONTRIBUTOR"
-                        ? "text-amber-400"
-                        : "text-red-400"
-                    }`}
-                  >
-                    Verdict: {contrib.verdict.replace(/_/g, " ")}
+                <div className="mt-4 border-t border-white/5 pt-3 flex items-center justify-between">
+                  {contrib.pramaan_score && contrib.pramaan_score >= 75 ? (
+                    <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 font-mono text-[10px] text-emerald-400 font-semibold flex items-center space-x-1">
+                      <span>✓</span>
+                      <span>Hoollow Verified Builder</span>
+                    </span>
+                  ) : contrib.anomaly_flags.length > 0 || (contrib.pramaan_score && contrib.pramaan_score < 40) ? (
+                    <span className="rounded-full border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 font-mono text-[10px] text-rose-400 font-semibold flex items-center space-x-1">
+                      <span>✕</span>
+                      <span>Fails Proof-of-Work Standard</span>
+                    </span>
+                  ) : (
+                    <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 font-mono text-[10px] text-amber-400 font-semibold flex items-center space-x-1">
+                      <span>!</span>
+                      <span>Insufficient Code Complexity</span>
+                    </span>
+                  )}
+                  <span className="font-mono text-[10px] text-zinc-500">
+                    {contrib.verdict.replace(/_/g, " ")}
                   </span>
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* Hoollow Proof of Work Verification Footer */}
+          <div className="mt-6 border-t border-white/5 pt-4 flex flex-col sm:flex-row items-center justify-between text-xs font-mono text-zinc-500 gap-3">
+            <div className="flex items-center space-x-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              <span className="font-semibold text-emerald-500/80">
+                VERIFIED UNDER HOOLLOW PROOF-OF-WORK STANDARD
+              </span>
+            </div>
+            <a
+              href="https://hoollow.com"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center space-x-1 text-emerald-400 hover:text-emerald-300 font-medium transition"
+            >
+              <span>Export to Hoollow Profile ↗</span>
+            </a>
           </div>
         </motion.div>
       )}
