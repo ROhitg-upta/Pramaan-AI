@@ -75,12 +75,22 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRepo, activeStep }) => {
                 <Link
                   href="/evaluator/cohorts"
                   className={`px-2.5 py-1 rounded-lg transition ${
-                    pathname === "/evaluator/cohorts"
+                    pathname?.startsWith("/evaluator/cohorts")
                       ? "bg-zinc-800 text-zinc-100 font-semibold"
                       : "text-zinc-400 hover:text-zinc-200"
                   }`}
                 >
                   Cohorts
+                </Link>
+                <Link
+                  href="/evaluator/settings"
+                  className={`px-2.5 py-1 rounded-lg transition ${
+                    pathname === "/evaluator/settings"
+                      ? "bg-zinc-800 text-zinc-100 font-semibold"
+                      : "text-zinc-400 hover:text-zinc-200"
+                  }`}
+                >
+                  Settings
                 </Link>
               </>
             ) : (

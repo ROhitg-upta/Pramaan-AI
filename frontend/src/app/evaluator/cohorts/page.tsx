@@ -19,6 +19,7 @@ import {
   X,
   Sparkles,
   Layers,
+  BarChart3,
 } from "lucide-react";
 
 interface BatchItem {
@@ -153,6 +154,14 @@ export default function EvaluatorCohortsBatchEngine() {
         </div>
 
         <div className="flex items-center space-x-3 font-mono text-xs">
+          <Link
+            href="/evaluator/cohorts/cs401-capstone"
+            className="inline-flex items-center space-x-1.5 rounded-xl bg-white px-3.5 py-2 text-zinc-950 font-medium hover:bg-zinc-200 transition shadow-sm"
+          >
+            <BarChart3 className="h-3.5 w-3.5" />
+            <span>Freeloader Heatmap ➔</span>
+          </Link>
+
           <button
             type="button"
             onClick={handleExportGradebookCsv}
