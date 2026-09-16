@@ -91,57 +91,32 @@ export default function DeveloperWorkbench() {
       {/* 1. Hero Header */}
       <div className="flex flex-col items-center text-center">
         {/* Top Announcement Pill */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="inline-flex items-center space-x-2 rounded-full border border-emerald-500/20 bg-emerald-950/20 px-3.5 py-1 text-xs font-mono text-emerald-400 shadow-sm"
-        >
+        <div className="inline-flex items-center space-x-2 rounded-full border border-emerald-500/20 bg-emerald-950/20 px-3.5 py-1 text-xs font-mono text-emerald-400 shadow-sm">
           <span>✦ HOOLLOW PROTOCOL • PROOF OF WORK &gt; DEGREE</span>
-        </motion.div>
+        </div>
 
         {/* Crisp Developer Headline */}
-        <motion.h1
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="mt-6 font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-zinc-100 max-w-4xl"
-        >
+        <h1 className="mt-6 font-display text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-zinc-100 max-w-4xl">
           Separating Real Builders{" "}
           <span className="bg-gradient-to-r from-zinc-100 via-zinc-300 to-zinc-500 bg-clip-text text-transparent">
             from Copy-Paste.
           </span>
-        </motion.h1>
+        </h1>
 
         {/* Core Mission Sub-tagline */}
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.18 }}
-          className="mt-4 inline-flex items-center space-x-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-4 py-1.5 font-mono text-xs sm:text-sm text-emerald-300"
-        >
+        <div className="mt-4 inline-flex items-center space-x-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-4 py-1.5 font-mono text-xs sm:text-sm text-emerald-300">
           <Sparkles className="h-3.5 w-3.5 text-emerald-400" />
           <span>&ldquo;Degrees can be faked. Commits can be copied. Proof of Work cannot.&rdquo;</span>
-        </motion.div>
+        </div>
 
         {/* Subtitle */}
-        <motion.p
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.25 }}
-          className="mt-4 font-body text-base sm:text-lg text-zinc-400 max-w-2xl leading-relaxed"
-        >
+        <p className="mt-4 font-body text-base sm:text-lg text-zinc-400 max-w-2xl leading-relaxed">
           Autonomous code forensics and line-targeted viva defense. We analyze commit cadence, detect 3 AM AI dumps, and verify genuine repository authorship.
-        </motion.p>
+        </p>
       </div>
 
       {/* 2. The Command Bar (Raycast / Linear Style Floating Bar) */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.3 }}
-        className="mx-auto mt-10 max-w-2xl"
-      >
+      <div className="mx-auto mt-10 max-w-2xl">
         <div className="rounded-2xl border border-white/10 bg-zinc-900/70 p-2 shadow-2xl backdrop-blur-xl">
           <form
             onSubmit={(e) => {
@@ -186,7 +161,7 @@ export default function DeveloperWorkbench() {
             </button>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {/* 3. Live Telemetry & Metrics Strip */}
       <div className="mt-14 grid grid-cols-2 gap-4 lg:grid-cols-4">
