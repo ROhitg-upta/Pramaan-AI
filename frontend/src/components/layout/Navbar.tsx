@@ -92,6 +92,16 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRepo, activeStep }) => {
                 >
                   Settings
                 </Link>
+                <Link
+                  href="/pitch"
+                  className={`px-2.5 py-1 rounded-lg transition font-semibold ${
+                    pathname === "/pitch"
+                      ? "bg-emerald-950/60 text-emerald-300 border border-emerald-500/30"
+                      : "text-emerald-400 hover:text-emerald-300"
+                  }`}
+                >
+                  Judge Showcase ✦
+                </Link>
               </>
             ) : (
               <>
@@ -134,6 +144,16 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRepo, activeStep }) => {
                   }`}
                 >
                   Public Proof
+                </Link>
+                <Link
+                  href="/pitch"
+                  className={`px-2.5 py-1 rounded-lg transition font-semibold ${
+                    pathname === "/pitch"
+                      ? "bg-emerald-950/60 text-emerald-300 border border-emerald-500/30"
+                      : "text-emerald-400 hover:text-emerald-300"
+                  }`}
+                >
+                  Judge Showcase ✦
                 </Link>
               </>
             )}
