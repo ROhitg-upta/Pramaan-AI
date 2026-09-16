@@ -1,0 +1,142 @@
+// Pramaan AI — Enterprise Multi-Tenant SaaS Database Schema
+// Spec: Module 10 (PostgreSQL / Prisma ORM)
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole {
+  STUDENT
+  EVALUATOR
+  ADMIN
+}
+
+enum VivaStatus {
+  SCHEDULED
+  WAITING
+  IN_PROGRESS
+  UNDER_REVIEW
+  VERIFIED
+  FLAGGED
+}
+
+model User {
+  id              String         @id @default(uuid())
+  email           String         @unique
+  fullName        String
+  role            UserRole       @default(STUDENT)
+  githubUsername  String?        @unique
+  avatarUrl       String?
+  organizationId  String?
+  organization    Organization?  @relation(fields: [organizationId], references: [id])
+  evaluatorAudits Audit[]        @relation("EvaluatorAudits")
+  vivaSessions    VivaSession[]  @relation("StudentSessions")
+  evaluatedVivas  VivaSession[]  @relation("EvaluatorSessions")
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
+model Organization {
+  id        String   @id @default(uuid())
+  name      String
+  domain    String?  @unique
+  users     User[]
+  audits    Audit[]
+  createdAt DateTime @default(now())
+}
+
+model Audit {
+  id                  String               @id @default(uuid())
+  organizationId      String?
+  organization        Organization?        @relation(fields: [organizationId], references: [id])
+  evaluatorId         String
+  evaluator           User                 @relation("EvaluatorAudits", fields: [evaluatorId], references: [id])
+  repoUrl             String
+  repoName            String
+  branch              String               @default("main")
+  totalCommits        Int                  @default(0)
+  totalLinesAudited   Int                  @default(0)
+  totalFiles          Int                  @default(0)
+  integrityGrade      String               @default("PENDING")
+  overallPramaanScore Float?
+  executiveSummary    String?
+  contributors        AuditContributor[]
+  vivaSessions        VivaSession[]
+  createdAt           DateTime             @default(now())
+}
+
+model AuditContributor {
+  id               String        @id @default(uuid())
+  auditId          String
+  audit            Audit         @relation(fields: [auditId], references: [id], onDelete: Cascade)
+  githubLogin      String
+  displayName      String
+  email            String?
+  avatarUrl        String?
+  totalCommits     Int           @default(0)
+  linesAdded       Int           @default(0)
+  linesDeleted     Int           @default(0)
+  churnRatio       Float         @default(0.0)
+  tier0Lines       Int           @default(0)
+  tier1Lines       Int           @default(0)
+  tier2Lines       Int           @default(0)
+  tier3Lines       Int           @default(0)
+  gitForensicsScore Float        @default(0.0)
+  astComplexityScore Float       @default(0.0)
+  vivaDefenseScore Float?
+  pramaanScore     Float?
+  verdict          String        @default("PENDING_VIVA")
+  radarAxes        Json?
+  anomalyFlags     Json?
+  vivaSession      VivaSession?
+}
+
+model VivaSession {
+  id               String           @id @default(uuid())
+  auditId          String
+  audit            Audit            @relation(fields: [auditId], references: [id], onDelete: Cascade)
+  contributorId    String           @unique
+  contributor      AuditContributor @relation(fields: [contributorId], references: [id], onDelete: Cascade)
+  studentId        String?
+  student          User?            @relation("StudentSessions", fields: [studentId], references: [id])
+  evaluatorId      String
+  evaluator        User             @relation("EvaluatorSessions", fields: [evaluatorId], references: [id])
+  roomCode         String           @unique
+  status           VivaStatus       @default(SCHEDULED)
+  scheduledAt      DateTime?
+  startedAt        DateTime?
+  completedAt      DateTime?
+  exchanges        VivaExchange[]
+  certificateHash  String?
+  finalScore       Float?
+  evaluatorNotes   String?
+  createdAt        DateTime         @default(now())
+}
+
+model VivaExchange {
+  id                 String       @id @default(uuid())
+  sessionId          String
+  session            VivaSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  questionIndex      Int
+  category           String
+  difficulty         String
+  filePath           String
+  referencedLines    Int[]
+  codeSnippet        String
+  questionText       String
+  expectedConcepts   String[]
+  trapSignals        String[]
+  studentAnswer      String?
+  audioRecordingUrl  String?
+  latencySeconds     Float?
+  pasteDetected      Boolean      @default(false)
+  aiScore            Float?
+  evaluatorScore     Float?
+  feedback           String?
+  createdAt          DateTime     @default(now())
+}
