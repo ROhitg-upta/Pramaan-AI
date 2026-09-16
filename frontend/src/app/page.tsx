@@ -203,21 +203,23 @@ export default function HoollowStyledLandingPage() {
               key={copyIndex}
               className="flex items-center text-5xl sm:text-7xl lg:text-8xl font-black uppercase tracking-wider"
               style={{
-                WebkitTextStroke: "1.5px rgba(255, 255, 255, 0.16)",
-                color: "transparent",
+                WebkitTextStroke: "1.5px rgba(255, 255, 255, 0.42)",
+                color: "rgba(255, 255, 255, 0.09)",
                 fontFamily: "var(--font-display, sans-serif)",
               }}
             >
-              <span className="mx-6">Proof of Work &gt; Degree</span>
-              <span className="mx-6 text-purple-500/40">•</span>
+              <span className="mx-6 text-zinc-300 drop-shadow-[0_0_20px_rgba(255,255,255,0.15)]">
+                Proof of Work &gt; Degree
+              </span>
+              <span className="mx-6 text-purple-400">•</span>
               <span className="mx-6">Har Code Ka Pramaan</span>
-              <span className="mx-6 text-purple-500/40">•</span>
+              <span className="mx-6 text-purple-400">•</span>
               <span className="mx-6">Zero AI Fluff</span>
-              <span className="mx-6 text-purple-500/40">•</span>
+              <span className="mx-6 text-purple-400">•</span>
               <span className="mx-6">Real Builders Only</span>
-              <span className="mx-6 text-purple-500/40">•</span>
+              <span className="mx-6 text-purple-400">•</span>
               <span className="mx-6">Autonomous Forensics</span>
-              <span className="mx-6 text-purple-500/40">•</span>
+              <span className="mx-6 text-purple-400">•</span>
             </div>
           ))}
         </motion.div>
