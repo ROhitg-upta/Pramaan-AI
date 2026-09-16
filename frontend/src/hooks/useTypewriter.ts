@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export interface TypewriterOptions {
   speed?: number; // ms per character
@@ -26,6 +26,12 @@ export function useTypewriter(
   const [isComplete, setIsComplete] = useState(false);
   const [cursorVisible, setCursorVisible] = useState(true);
 
+  // Use ref to keep latest onComplete without re-triggering or resetting typing effect
+  const onCompleteRef = useRef(onComplete);
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
+
   // Typewriter text interval
   useEffect(() => {
     let charIndex = 0;
@@ -40,7 +46,7 @@ export function useTypewriter(
         } else {
           setIsComplete(true);
           clearInterval(typeInterval);
-          onComplete?.();
+          onCompleteRef.current?.();
         }
       }, speed);
 
@@ -48,7 +54,7 @@ export function useTypewriter(
     }, delay);
 
     return () => clearTimeout(startTimeout);
-  }, [text, speed, delay, onComplete]);
+  }, [text, speed, delay]);
 
   // Blinking block cursor interval
   useEffect(() => {

@@ -97,11 +97,17 @@ export function useAudioAnalyser(fftSize = 64): AudioAnalyserState {
       const bufferLength = analyser.frequencyBinCount;
       const dataArray = new Uint8Array(bufferLength);
 
-      const updateAnalysis = () => {
+      let lastUpdate = 0;
+      const updateAnalysis = (timestamp: number) => {
         if (!analyserRef.current) return;
 
+        animationFrameRef.current = requestAnimationFrame(updateAnalysis);
+
+        // Throttle updates to ~25 FPS (every 40ms) to eliminate React state thrashing and high CPU load
+        if (timestamp - lastUpdate < 40) return;
+        lastUpdate = timestamp;
+
         analyserRef.current.getByteFrequencyData(dataArray);
-        setRawFrequencies(new Uint8Array(dataArray));
 
         // Calculate average volume
         let sum = 0;
@@ -116,11 +122,9 @@ export function useAudioAnalyser(fftSize = 64): AudioAnalyserState {
         const avgVolume = sum / bufferLength;
         setVolume(avgVolume);
         setFrequencies(normalizedArray);
-
-        animationFrameRef.current = requestAnimationFrame(updateAnalysis);
       };
 
-      updateAnalysis();
+      animationFrameRef.current = requestAnimationFrame(updateAnalysis);
     } catch (err: unknown) {
       const error = err as Error;
       setHasPermission(false);

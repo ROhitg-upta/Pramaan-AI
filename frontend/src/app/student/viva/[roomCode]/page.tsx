@@ -136,8 +136,8 @@ export default function StudentRealtimeVivaRoom() {
   const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
   const [cameraActive, setCameraActive] = useState<boolean>(true);
 
-  // Audio Analyser for mic check & live defense
-  const { isListening, volume, frequencies, toggleListening } = useAudioAnalyser(32);
+  // Audio Analyser for mic check in pre-flight phase
+  const { isListening, frequencies, toggleListening, stopListening } = useAudioAnalyser(32);
 
   // Active question index
   const [questionIndex, setQuestionIndex] = useState<number>(0);
@@ -146,6 +146,7 @@ export default function StudentRealtimeVivaRoom() {
   // Speech Synthesis (Text-to-Speech)
   const [audioMuted, setAudioMuted] = useState<boolean>(false);
   const [isSpeakingQuestion, setIsSpeakingQuestion] = useState<boolean>(false);
+  const activeUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   // Answer text & dictation
   const [answerText, setAnswerText] = useState<string>("");
@@ -195,22 +196,36 @@ export default function StudentRealtimeVivaRoom() {
     };
   }, []);
 
-  // Web Speech API: Typewriter finishes -> Text-to-Speech question
+  // Stable TTS callback on typewriter completion
+  const handleTypewriterComplete = React.useCallback(() => {
+    if (audioMuted || typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    try {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(currentQuestion.question_text);
+      utterance.rate = 0.95;
+      utterance.pitch = 0.9;
+      utterance.onstart = () => setIsSpeakingQuestion(true);
+      utterance.onend = () => {
+        setIsSpeakingQuestion(false);
+        activeUtteranceRef.current = null;
+      };
+      utterance.onerror = () => {
+        setIsSpeakingQuestion(false);
+        activeUtteranceRef.current = null;
+      };
+      activeUtteranceRef.current = utterance;
+      window.speechSynthesis.speak(utterance);
+    } catch (err) {
+      console.warn("TTS synthesis error:", err);
+      setIsSpeakingQuestion(false);
+    }
+  }, [audioMuted, currentQuestion.question_text]);
+
+  // Web Speech API: Typewriter text streaming with stable callback
   const { displayedText, isComplete } = useTypewriter(currentQuestion.question_text, {
     speed: 16,
     delay: 200,
-    onComplete: () => {
-      if (!audioMuted && typeof window !== "undefined" && "speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(currentQuestion.question_text);
-        utterance.rate = 0.95;
-        utterance.pitch = 0.9;
-        utterance.onstart = () => setIsSpeakingQuestion(true);
-        utterance.onend = () => setIsSpeakingQuestion(false);
-        utterance.onerror = () => setIsSpeakingQuestion(false);
-        window.speechSynthesis.speak(utterance);
-      }
-    },
+    onComplete: handleTypewriterComplete,
   });
 
   // Calculate Cadence (WPM & Fillers)
@@ -442,7 +457,10 @@ export default function StudentRealtimeVivaRoom() {
 
             <button
               type="button"
-              onClick={() => setPhase("defense")}
+              onClick={() => {
+                stopListening();
+                setPhase("defense");
+              }}
               className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 rounded-xl bg-zinc-100 hover:bg-white text-zinc-950 px-8 py-3 font-mono text-xs font-bold shadow-xl transition active:scale-95"
             >
               <span>Enter Examination Room (Launch Defense) ➔</span>
@@ -589,8 +607,8 @@ export default function StudentRealtimeVivaRoom() {
               </button>
             </div>
 
-            <div className="rounded-xl border border-white/5 bg-zinc-950 p-4 font-mono text-xs leading-relaxed text-zinc-100">
-              &ldquo;{displayedText}&rdquo;
+            <div className="rounded-xl border border-white/5 bg-zinc-950 p-4 font-mono text-xs leading-relaxed text-zinc-100 min-h-[72px]">
+              &ldquo;{displayedText || currentQuestion.question_text}&rdquo;
             </div>
 
             <div className="flex flex-wrap items-center gap-1.5 font-mono text-[10px]">
