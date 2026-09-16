@@ -3,6 +3,7 @@ import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
 import "@/styles/globals.css";
 import { ForensicGridBg } from "@/components/layout/ForensicGridBg";
 import { Navbar } from "@/components/layout/Navbar";
+import { PresentationModeProvider } from "@/components/layout/PresentationModeProvider";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -42,21 +43,23 @@ export default function RootLayout({
       <body className="bg-[#09090b] text-zinc-100 antialiased selection:bg-emerald-500/20 selection:text-emerald-300">
         <ForensicGridBg />
 
-        <div className="relative z-10 flex min-h-screen flex-col">
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <footer className="border-t border-white/5 py-6 text-center font-mono text-xs text-zinc-600">
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
-              <span>Pramaan AI</span>
-              <span className="hidden sm:inline">•</span>
-              <span className="text-emerald-500/80 font-medium">
-                VERIFIED UNDER HOOLLOW PROOF-OF-WORK STANDARD
-              </span>
-              <span className="hidden sm:inline">•</span>
-              <span>Horizon 2026</span>
-            </div>
-          </footer>
-        </div>
+        <PresentationModeProvider>
+          <div className="relative z-10 flex min-h-screen flex-col">
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <footer className="border-t border-white/5 py-6 text-center font-mono text-xs text-zinc-600">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
+                <span>Pramaan AI</span>
+                <span className="hidden sm:inline">•</span>
+                <span className="text-emerald-500/80 font-medium">
+                  VERIFIED UNDER HOOLLOW PROOF-OF-WORK STANDARD
+                </span>
+                <span className="hidden sm:inline">•</span>
+                <span>Horizon 2026</span>
+              </div>
+            </footer>
+          </div>
+        </PresentationModeProvider>
       </body>
     </html>
   );
