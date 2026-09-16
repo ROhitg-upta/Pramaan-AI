@@ -17,7 +17,7 @@ import { PhaseProgress, type PipelinePhase } from "@/components/scanning/PhasePr
 import { LiveTelemetryGrid } from "@/components/scanning/LiveTelemetryGrid";
 import { TerminalLogStream, type LogEntry } from "@/components/scanning/TerminalLogStream";
 import { AnomalyAlertCard, type AnomalyAlert } from "@/components/scanning/AnomalyAlertCard";
-import { checkBackendHealth, getAnalysisStatus, IS_MOCK_ENV } from "@/lib/api";
+import { checkBackendHealth, getAnalysisStatus } from "@/lib/api";
 
 const INITIAL_PHASES: PipelinePhase[] = [
   {
@@ -78,8 +78,8 @@ export default function InvestigationRoom() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [anomalies, setAnomalies] = useState<AnomalyAlert[]>([]);
 
-  // Track if using live backend or simulation
-  const isSimulation = IS_MOCK_ENV || analysisId.startsWith("demo-");
+  // Track if using demo simulation
+  const isSimulation = analysisId === "demo-smart-campus";
 
   // Push new log helper
   const addLog = (tag: LogEntry["tag"], message: string) => {
@@ -267,13 +267,77 @@ export default function InvestigationRoom() {
     };
   }, [analysisId, isSimulation]);
 
-  // ════════════════════ LIVE BACKEND POLLING (When connected) ════════════════════
+  // ════════════════════ REAL REPOSITORY ANALYSIS (FastAPI / Direct GitHub) ════════════════════
   useEffect(() => {
     if (isSimulation) return;
 
     let pollInterval: NodeJS.Timeout;
     let pollCount = 0;
 
+    // A. Direct GitHub Analysis Mode (gh-owner-repo)
+    if (analysisId.startsWith("gh-")) {
+      const raw = analysisId.replace(/^gh-/, "");
+      const parts = raw.split("-");
+      const owner = parts[0];
+      const repo = parts.slice(1).join("-");
+      const repoUrl = `https://github.com/${owner}/${repo}`;
+
+      addLog("SYS", `Initiating direct forensic ingestion for ${owner}/${repo}...`);
+      addLog("GIT", `Querying GitHub API for repository tree and commit DAG...`);
+
+      import("@/lib/github-analyzer").then(({ analyzeGitHubRepoDirectly }) => {
+        analyzeGitHubRepoDirectly(repoUrl, "main", (pct, step) => {
+          setProgress(pct);
+          addLog(pct < 50 ? "GIT" : pct < 80 ? "AST" : "VIVA", step);
+
+          // Update phases dynamically
+          setPhases((prev) =>
+            prev.map((ph, idx) => {
+              const phasePct = (idx + 1) * 16.6;
+              if (pct >= phasePct) {
+                return { ...ph, status: "completed", duration: "0.8s" };
+              } else if (pct >= phasePct - 16.6) {
+                return { ...ph, status: "active" };
+              }
+              return ph;
+            })
+          );
+        })
+          .then((report) => {
+            setCommitsCount(report.total_commits);
+            setLinesCount(report.total_lines_audited);
+            setAuthorsCount(report.contributors.length);
+            setFilesCount(report.total_files);
+
+            if (report.anomalies && report.anomalies.length > 0) {
+              setAnomalies(
+                report.anomalies.map((flag) => ({
+                  id: flag.id,
+                  type: flag.type,
+                  severity: flag.severity,
+                  author: flag.contributor_name,
+                  timestamp: "Detected",
+                  deltaLines: "Monolithic pattern",
+                  description: flag.evidence_summary,
+                  explanation: flag.evidence_summary,
+                }))
+              );
+            }
+
+            setProgress(100);
+            setIsScanning(false);
+            setIsComplete(true);
+            addLog("SYS", `Real-time forensic report compiled for ${report.repo_url}`);
+          })
+          .catch((err) => {
+            addLog("SYS", `Error during direct repository analysis: ${err.message}`);
+            setIsScanning(false);
+          });
+      });
+      return;
+    }
+
+    // B. Live FastAPI Polling Mode
     const pollStatus = async () => {
       try {
         pollCount++;
@@ -287,6 +351,19 @@ export default function InvestigationRoom() {
           setFilesCount(res.live_metrics.files_analyzed);
         }
 
+        // Update pipeline phases
+        setPhases((prev) =>
+          prev.map((ph, idx) => {
+            const phasePct = (idx + 1) * 16.6;
+            if (res.progress_percent >= phasePct) {
+              return { ...ph, status: "completed", duration: "1.0s" };
+            } else if (res.progress_percent >= phasePct - 16.6) {
+              return { ...ph, status: "active" };
+            }
+            return ph;
+          })
+        );
+
         if (res.early_red_flags && res.early_red_flags.length > 0) {
           setAnomalies(
             res.early_red_flags.map((flag) => ({
@@ -295,14 +372,16 @@ export default function InvestigationRoom() {
               severity: flag.severity,
               author: flag.contributor_name,
               timestamp: "Just now",
-              deltaLines: "+4,821 / -0 lines",
+              deltaLines: "Infraction detected",
               description: flag.description,
               explanation: flag.details,
             }))
           );
         }
 
-        addLog("SYS", res.current_step);
+        if (res.current_step) {
+          addLog("SYS", res.current_step);
+        }
 
         if (res.status === "completed" || res.progress_percent >= 100) {
           setIsScanning(false);

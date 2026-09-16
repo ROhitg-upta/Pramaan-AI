@@ -14,14 +14,14 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({ currentRepo, activeStep }) => {
   const [backendState, setBackendState] = useState<{
     live: boolean;
-    mode: "LIVE" | "MOCK";
+    mode: "LIVE" | "GITHUB_DIRECT" | "MOCK";
     latencyMs?: number;
   }>({
     live: true,
-    mode: "MOCK",
+    mode: "LIVE",
   });
 
-  const [activeMode, setActiveMode] = useState<"LIVE" | "MOCK">("MOCK");
+  const [activeMode, setActiveMode] = useState<"LIVE" | "GITHUB_DIRECT" | "MOCK">("LIVE");
 
   useEffect(() => {
     checkBackendHealth().then((health) => {
@@ -65,39 +65,20 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRepo, activeStep }) => {
 
         {/* Right Tools: Clean Segmented Pill & GitHub Link */}
         <div className="flex items-center space-x-3">
-          {/* Status Dot Pill */}
-          <div className="hidden sm:flex items-center space-x-1.5 rounded-full border border-white/5 bg-zinc-900/60 px-2.5 py-1 text-[11px] font-mono text-zinc-400">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 ring-2 ring-emerald-500/20 animate-pulse" />
-            <span>System Ready</span>
-          </div>
-
-          {/* Mode Segmented Toggle */}
-          <div className="flex items-center rounded-lg border border-white/10 bg-zinc-900/80 p-0.5 font-mono text-[11px]">
-            <button
-              onClick={() => setActiveMode("MOCK")}
-              className={`flex items-center space-x-1 rounded-md px-2.5 py-1 transition-colors ${
-                activeMode === "MOCK"
-                  ? "bg-zinc-800 text-zinc-100 font-medium shadow-sm"
-                  : "text-zinc-500 hover:text-zinc-300"
+          {/* Real Backend Engine Status Pill */}
+          <div className="hidden sm:flex items-center space-x-1.5 rounded-full border border-white/5 bg-zinc-900/60 px-3 py-1 text-[11px] font-mono text-zinc-300">
+            <span
+              className={`h-2 w-2 rounded-full ${
+                backendState.live
+                  ? "bg-emerald-400 ring-2 ring-emerald-500/20 animate-pulse"
+                  : "bg-cyan-400 ring-2 ring-cyan-500/20"
               }`}
-            >
-              <span>Mock</span>
-            </button>
-            <button
-              onClick={() => setActiveMode("LIVE")}
-              className={`flex items-center space-x-1 rounded-md px-2.5 py-1 transition-colors ${
-                activeMode === "LIVE"
-                  ? "bg-zinc-800 text-emerald-400 font-medium shadow-sm"
-                  : "text-zinc-500 hover:text-zinc-300"
-              }`}
-            >
-              <span
-                className={`h-1.5 w-1.5 rounded-full ${
-                  backendState.live ? "bg-emerald-400" : "bg-amber-400"
-                }`}
-              />
-              <span>Live API</span>
-            </button>
+            />
+            <span>
+              {backendState.live
+                ? `FastAPI Engine (${backendState.latencyMs ?? 15}ms)`
+                : "Direct GitHub API Engine"}
+            </span>
           </div>
 
           {/* GitHub Link */}
