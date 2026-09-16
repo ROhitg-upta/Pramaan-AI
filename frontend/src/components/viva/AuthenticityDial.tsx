@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import {
   ShieldCheck,
   AlertTriangle,
@@ -220,13 +221,13 @@ export function AuthenticityDial({
             </button>
           )}
 
-          <a
+          <Link
             href={`/verdict/${analysisId}`}
             className="inline-flex items-center space-x-2 rounded-xl bg-zinc-100 text-zinc-950 hover:bg-white px-5 py-2.5 font-mono text-xs font-bold shadow-lg transition"
           >
             <span>Proceed to Final Verdict &amp; Proof Receipt</span>
             <ArrowRight className="h-3.5 w-3.5" />
-          </a>
+          </Link>
         </div>
       </div>
     </div>
