@@ -709,7 +709,8 @@ export default function InvestigationRoom() {
 
               {/* Hoollow Proof-of-Work Standard Watermark */}
               <div className="mt-5 border-t border-white/5 pt-3 flex items-center justify-between font-mono text-[11px] text-zinc-500">
-                <span className="font-semibold text-emerald-500/80">
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/80 bg-black px-3.5 py-1 text-[11px] font-medium tracking-wider text-zinc-100 shadow-sm">
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                   VERIFIED UNDER HOOLLOW PROOF-OF-WORK STANDARD
                 </span>
                 <span className="text-zinc-600">Horizon Hackathon 2026</span>

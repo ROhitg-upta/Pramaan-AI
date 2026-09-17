@@ -405,9 +405,9 @@ export default function EvidenceWall() {
 
           {/* 5. Official Hoollow Proof of Work Watermark Footer */}
           <div className="mt-12 rounded-xl border border-white/5 bg-zinc-950 p-4 flex flex-col sm:flex-row items-center justify-between text-xs font-mono text-zinc-500 gap-3">
-            <div className="flex items-center space-x-2">
+            <div className="inline-flex items-center space-x-2 rounded-full border border-white/80 bg-black px-3.5 py-1 shadow-sm">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="font-semibold text-emerald-500/90">
+              <span className="font-semibold text-zinc-100 text-[11px] tracking-wider">
                 VERIFIED UNDER HOOLLOW PROOF-OF-WORK STANDARD
               </span>
             </div>
