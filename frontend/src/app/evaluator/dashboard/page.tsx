@@ -38,11 +38,17 @@ export default function EvaluatorDashboard() {
   const handleSingleAudit = async (e: React.FormEvent) => {
     e.preventDefault();
     const url = repoUrl.trim() || "https://github.com/demo/smart-campus-app";
+    triggerQuickAudit(url, branch);
+  };
+
+  const triggerQuickAudit = async (url: string, branchName = "main") => {
+    setRepoUrl(url);
+    setBranch(branchName);
     if (typeof window !== "undefined") {
       sessionStorage.setItem("pramaan_target_url", url);
     }
     try {
-      const res = await analyzeRepo(url, branch);
+      const res = await analyzeRepo(url, branchName);
       router.push(`/investigate/${res.analysis_id}`);
     } catch {
       router.push("/investigate/demo-smart-campus");
@@ -176,33 +182,93 @@ export default function EvaluatorDashboard() {
         </div>
 
         {activeTab === "single" ? (
-          <form onSubmit={handleSingleAudit} className="flex flex-col sm:flex-row gap-3">
-            <div className="relative flex-1">
-              <input
-                type="text"
-                placeholder="https://github.com/organization/student-repository"
-                value={repoUrl}
-                onChange={(e) => setRepoUrl(e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-zinc-950 py-3 pl-4 pr-4 font-mono text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-cyan-500/50"
-              />
+          <>
+            <form onSubmit={handleSingleAudit} className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  placeholder="https://github.com/organization/student-repository"
+                  value={repoUrl}
+                  onChange={(e) => setRepoUrl(e.target.value)}
+                  className="w-full rounded-xl border border-white/10 bg-zinc-950 py-3 pl-4 pr-4 font-mono text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-cyan-500/50"
+                />
+              </div>
+              <div className="w-full sm:w-32">
+                <input
+                  type="text"
+                  placeholder="branch (main)"
+                  value={branch}
+                  onChange={(e) => setBranch(e.target.value)}
+                  className="w-full rounded-xl border border-white/10 bg-zinc-950 py-3 px-4 font-mono text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-cyan-500/50"
+                />
+              </div>
+              <button
+                type="submit"
+                className="inline-flex items-center justify-center space-x-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-3 font-mono text-xs font-semibold shadow-lg transition"
+              >
+                <span>Launch Audit</span>
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            </form>
+
+            {/* Quick Test Repositories (1-Click) */}
+            <div className="mt-4 pt-3 border-t border-white/5 space-y-2">
+              <div className="flex items-center justify-between text-[11px] font-mono">
+                <span className="flex items-center space-x-1.5 text-cyan-400 font-semibold">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  <span>Quick Test Repositories (1-Click Evaluator Ingestion)</span>
+                </span>
+                <span className="text-[10px] text-zinc-500">Auto-populates and runs pipeline</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 font-mono text-xs">
+                <button
+                  type="button"
+                  onClick={() => triggerQuickAudit("https://github.com/ROhitg-upta/abtalks-redesign")}
+                  className="flex items-center justify-between rounded-xl border border-white/10 bg-zinc-950/80 p-2.5 text-left hover:border-emerald-500/40 hover:bg-zinc-900 transition group"
+                >
+                  <div className="truncate">
+                    <div className="flex items-center space-x-1.5">
+                      <span>✨</span>
+                      <span className="font-bold text-zinc-200 group-hover:text-emerald-300">ABTalks Redesign</span>
+                    </div>
+                    <div className="text-[10px] text-zinc-500 truncate mt-0.5">ROhitg-upta (Fast UI)</div>
+                  </div>
+                  <span className="text-[10px] text-emerald-400 shrink-0 font-bold ml-1">➔</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => triggerQuickAudit("https://github.com/demo/smart-campus-app")}
+                  className="flex items-center justify-between rounded-xl border border-white/10 bg-zinc-950/80 p-2.5 text-left hover:border-cyan-500/40 hover:bg-zinc-900 transition group"
+                >
+                  <div className="truncate">
+                    <div className="flex items-center space-x-1.5">
+                      <span>🏫</span>
+                      <span className="font-bold text-zinc-200 group-hover:text-cyan-300">Smart Campus App</span>
+                    </div>
+                    <div className="text-[10px] text-zinc-500 truncate mt-0.5">3 Authors • Capstone</div>
+                  </div>
+                  <span className="text-[10px] text-cyan-400 shrink-0 font-bold ml-1">➔</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => triggerQuickAudit("https://github.com/demo/monolithic-ai-dump")}
+                  className="flex items-center justify-between rounded-xl border border-rose-500/30 bg-rose-950/20 p-2.5 text-left hover:border-rose-500/60 hover:bg-rose-950/40 transition group"
+                >
+                  <div className="truncate">
+                    <div className="flex items-center space-x-1.5">
+                      <span>🚨</span>
+                      <span className="font-bold text-rose-300 group-hover:text-rose-200">Monolithic AI Dump</span>
+                    </div>
+                    <div className="text-[10px] text-rose-400/70 truncate mt-0.5">Fraud Sample (3:42 AM)</div>
+                  </div>
+                  <span className="text-[10px] text-rose-400 shrink-0 font-bold ml-1">➔</span>
+                </button>
+              </div>
             </div>
-            <div className="w-full sm:w-32">
-              <input
-                type="text"
-                placeholder="branch (main)"
-                value={branch}
-                onChange={(e) => setBranch(e.target.value)}
-                className="w-full rounded-xl border border-white/10 bg-zinc-950 py-3 px-4 font-mono text-xs text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-cyan-500/50"
-              />
-            </div>
-            <button
-              type="submit"
-              className="inline-flex items-center justify-center space-x-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-3 font-mono text-xs font-semibold shadow-lg transition"
-            >
-              <span>Launch Audit</span>
-              <ArrowRight className="h-4 w-4" />
-            </button>
-          </form>
+          </>
         ) : (
           <div className="space-y-4">
             <div>

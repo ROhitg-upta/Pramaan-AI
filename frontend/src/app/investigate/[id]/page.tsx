@@ -87,6 +87,11 @@ export default function InvestigationRoom() {
   // Logs & Anomalies
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [anomalies, setAnomalies] = useState<AnomalyAlert[]>([]);
+  const [backendLive, setBackendLive] = useState<boolean>(true);
+
+  useEffect(() => {
+    checkBackendHealth().then((h) => setBackendLive(h.live)).catch(() => setBackendLive(false));
+  }, []);
 
   // Track if using demo simulation
   const isSimulation = analysisId === "demo-smart-campus";
@@ -614,7 +619,11 @@ export default function InvestigationRoom() {
       {/* Main Orchestration Grid (Visible when not in hard failure, or below error) */}
       <div className="space-y-6">
         {/* 1. 6-Phase Pipeline Tracker */}
-        <PhaseProgress phases={phases} overallProgress={progress} />
+        <PhaseProgress
+          phases={phases}
+          overallProgress={progress}
+          backendConnected={backendLive}
+        />
 
         {/* 2. Real-Time Telemetry Grid */}
         <LiveTelemetryGrid

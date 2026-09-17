@@ -19,10 +19,12 @@ import {
   Flame,
   Code2,
   CheckCircle2,
+  Sparkles,
 } from "lucide-react";
 import { analyzeRepo } from "@/lib/api";
 import { useCountUp } from "@/hooks/useCountUp";
 import { LiveCodeSandbox } from "@/components/landing/LiveCodeSandbox";
+import { HowItWorksModal } from "@/components/common/HowItWorksModal";
 
 export default function HoollowStyledLandingPage() {
   const router = useRouter();
@@ -30,6 +32,7 @@ export default function HoollowStyledLandingPage() {
   const [selectedBranch, setSelectedBranch] = useState("main");
   const [isAuditing, setIsAuditing] = useState(false);
   const [showInputModal, setShowInputModal] = useState(false);
+  const [isTourOpen, setIsTourOpen] = useState(false);
 
   // Close modal on Escape
   useEffect(() => {
@@ -135,6 +138,15 @@ export default function HoollowStyledLandingPage() {
               >
                 <Zap className="h-4 w-4 text-zinc-400" />
                 <span>Explore Live Demo</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsTourOpen(true)}
+                className="inline-flex items-center space-x-2 rounded-xl border border-emerald-500/30 bg-emerald-950/20 px-5 py-3.5 font-mono text-sm font-medium text-emerald-400 hover:border-emerald-500/50 hover:bg-emerald-900/30 transition active:scale-[0.98] shadow-sm"
+              >
+                <span>How It Works</span>
+                <span>💡</span>
               </button>
             </motion.div>
 
@@ -561,6 +573,79 @@ export default function HoollowStyledLandingPage() {
                   </div>
                 </div>
 
+                {/* Quick Test Repositories (1-Click) */}
+                <div className="space-y-2 pt-1 border-t border-white/5">
+                  <div className="flex items-center justify-between text-[11px] font-mono">
+                    <span className="flex items-center space-x-1 text-emerald-400 font-semibold">
+                      <Sparkles className="h-3 w-3" />
+                      <span>Quick Test Repositories (1-Click)</span>
+                    </span>
+                    <span className="text-[10px] text-zinc-500">Auto-fills &amp; starts</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-1.5 font-mono text-xs">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const url = "https://github.com/ROhitg-upta/abtalks-redesign";
+                        setRepoUrl(url);
+                        setShowInputModal(false);
+                        handleAudit(url);
+                      }}
+                      className="w-full flex items-center justify-between rounded-xl border border-white/10 bg-zinc-900/90 px-3 py-2 text-left hover:border-emerald-500/40 hover:bg-zinc-800 transition group"
+                    >
+                      <div className="flex items-center space-x-2 truncate">
+                        <span className="text-emerald-400">✨</span>
+                        <span className="font-semibold text-zinc-200 group-hover:text-emerald-300">
+                          ABTalks Redesign
+                        </span>
+                        <span className="text-[10px] text-zinc-500 truncate">ROhitg-upta/abtalks-redesign</span>
+                      </div>
+                      <span className="text-[10px] font-semibold text-emerald-400 shrink-0">Fast UI Test ➔</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const url = "https://github.com/demo/smart-campus-app";
+                        setRepoUrl(url);
+                        setShowInputModal(false);
+                        handleAudit(url);
+                      }}
+                      className="w-full flex items-center justify-between rounded-xl border border-white/10 bg-zinc-900/90 px-3 py-2 text-left hover:border-cyan-500/40 hover:bg-zinc-800 transition group"
+                    >
+                      <div className="flex items-center space-x-2 truncate">
+                        <span className="text-cyan-400">🏫</span>
+                        <span className="font-semibold text-zinc-200 group-hover:text-cyan-300">
+                          Smart Campus App
+                        </span>
+                        <span className="text-[10px] text-zinc-500 truncate">3 Authors • Capstone</span>
+                      </div>
+                      <span className="text-[10px] font-semibold text-cyan-400 shrink-0">Multi-Author ➔</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const url = "https://github.com/demo/monolithic-ai-dump";
+                        setRepoUrl(url);
+                        setShowInputModal(false);
+                        handleAudit(url);
+                      }}
+                      className="w-full flex items-center justify-between rounded-xl border border-rose-500/30 bg-rose-950/20 px-3 py-2 text-left hover:border-rose-500/60 hover:bg-rose-950/40 transition group"
+                    >
+                      <div className="flex items-center space-x-2 truncate">
+                        <span className="text-rose-400">🚨</span>
+                        <span className="font-semibold text-rose-300 group-hover:text-rose-200">
+                          Monolithic AI Dump
+                        </span>
+                        <span className="text-[10px] text-rose-400/70 truncate">4,800 lines • 3:42 AM</span>
+                      </div>
+                      <span className="text-[10px] font-semibold text-rose-400 shrink-0">Fraud Trigger ➔</span>
+                    </button>
+                  </div>
+                </div>
+
                 <div className="flex items-center justify-between pt-2">
                   <button
                     type="button"
@@ -568,10 +653,10 @@ export default function HoollowStyledLandingPage() {
                       setShowInputModal(false);
                       handleExploreDemo();
                     }}
-                    className="font-mono text-xs text-purple-400 hover:underline flex items-center space-x-1"
+                    className="font-mono text-xs text-zinc-400 hover:text-white flex items-center space-x-1"
                   >
-                    <Zap className="h-3 w-3" />
-                    <span>Or load sample: Smart Campus</span>
+                    <Zap className="h-3 w-3 text-emerald-400" />
+                    <span>Or load interactive demo project</span>
                   </button>
 
                   <button
@@ -588,6 +673,13 @@ export default function HoollowStyledLandingPage() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Interactive Platform Tour Modal */}
+      <HowItWorksModal
+        isOpen={isTourOpen}
+        onClose={() => setIsTourOpen(false)}
+        onStartAudit={() => setShowInputModal(true)}
+      />
     </div>
   );
 }

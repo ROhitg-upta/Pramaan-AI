@@ -7,6 +7,7 @@ import { GitBranch, Github, Radio, Check, ChevronRight, GraduationCap, ShieldChe
 import { Logo } from "@/components/ui/Logo";
 import { checkBackendHealth } from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import { HowItWorksModal } from "@/components/common/HowItWorksModal";
 
 interface NavbarProps {
   currentRepo?: string;
@@ -18,6 +19,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRepo, activeStep }) => {
   const { user, role, switchRole, logout } = useAuth();
   const isEvaluator = role === "EVALUATOR";
 
+  const [isTourOpen, setIsTourOpen] = useState(false);
   const [backendState, setBackendState] = useState<{
     live: boolean;
     mode: "LIVE" | "GITHUB_DIRECT" | "MOCK";
@@ -180,8 +182,18 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRepo, activeStep }) => {
           </nav>
         </div>
 
-        {/* Right Tools: Backend State, Role Pill, User Dropdown, GitHub */}
+        {/* Right Tools: How It Works Pill, Backend State, Role Pill, User Dropdown, GitHub */}
         <div className="flex items-center space-x-3 font-mono text-xs">
+          {/* How It Works Pill Button */}
+          <button
+            type="button"
+            onClick={() => setIsTourOpen(true)}
+            className="inline-flex items-center space-x-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/20 px-3 py-1 text-[11px] font-semibold text-emerald-400 hover:bg-emerald-900/30 hover:border-emerald-500/50 transition shadow-sm"
+          >
+            <span>How It Works</span>
+            <span className="text-xs">💡</span>
+          </button>
+
           {/* Backend Engine Status Pill */}
           <div className="hidden lg:flex items-center space-x-1.5 rounded-full border border-white/5 bg-zinc-900/60 px-3 py-1 text-[11px] text-zinc-300">
             <span
@@ -279,6 +291,11 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRepo, activeStep }) => {
           </a>
         </div>
       </div>
+
+      <HowItWorksModal
+        isOpen={isTourOpen}
+        onClose={() => setIsTourOpen(false)}
+      />
     </header>
   );
 };

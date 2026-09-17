@@ -29,6 +29,8 @@ import {
   RefreshCw,
   Send,
   Zap,
+  Trash2,
+  RotateCcw,
 } from "lucide-react";
 
 // 3 Curated Viva Questions for the Real-time Defense
@@ -150,6 +152,7 @@ export default function StudentRealtimeVivaRoom() {
 
   // Answer text & dictation
   const [answerText, setAnswerText] = useState<string>("");
+  const [previousAnswerText, setPreviousAnswerText] = useState<string>("");
   const [isDictating, setIsDictating] = useState<boolean>(false);
   const recognitionRef = useRef<any>(null);
 
@@ -266,6 +269,7 @@ export default function StudentRealtimeVivaRoom() {
 
     try {
       dictationBaseRef.current = answerText;
+      setPreviousAnswerText(answerText);
       const recognition = new SpeechRecognition();
       recognition.continuous = true;
       recognition.interimResults = true;
@@ -640,23 +644,71 @@ export default function StudentRealtimeVivaRoom() {
             )}
 
             {/* Dictation & Demo Shortcuts Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-2 font-mono text-xs">
-              {/* Pulsating Red Mic Dictation Button */}
-              <button
-                type="button"
-                onClick={toggleDictation}
-                className={`inline-flex items-center space-x-2 rounded-xl px-3.5 py-1.5 font-semibold transition ${
-                  isDictating
-                    ? "bg-rose-600 text-white animate-pulse"
-                    : "border border-white/10 bg-zinc-950 text-zinc-300 hover:bg-zinc-800"
-                }`}
-              >
-                <Mic className={`h-3.5 w-3.5 ${isDictating ? "text-white" : "text-emerald-400"}`} />
-                <span>{isDictating ? "Listening (Stop)" : "🎙️ Speak Defense (Dictate)"}</span>
-              </button>
+            <div className="flex flex-wrap items-center justify-between gap-3 font-mono text-xs">
+              <div className="flex flex-wrap items-center gap-2.5">
+                {/* Pulsating Red Mic Dictation Button */}
+                <button
+                  type="button"
+                  onClick={toggleDictation}
+                  className={`inline-flex items-center space-x-2 rounded-xl px-3.5 py-1.5 font-semibold transition ${
+                    isDictating
+                      ? "bg-rose-600 text-white shadow-lg shadow-rose-600/30 animate-pulse"
+                      : "border border-white/10 bg-zinc-950 text-zinc-300 hover:bg-zinc-800"
+                  }`}
+                >
+                  <Mic className={`h-3.5 w-3.5 ${isDictating ? "text-white" : "text-emerald-400"}`} />
+                  <span>{isDictating ? "Listening (Stop)" : "🎙️ Speak Defense (Dictate)"}</span>
+                </button>
 
-              {/* Demo Shortcuts */}
+                {/* 5-Bar Acoustic Green Waveform & Live Indicator */}
+                {isDictating && (
+                  <div className="flex items-center space-x-2">
+                    <div className="flex items-end space-x-1 h-5 px-2 py-0.5 rounded-lg bg-emerald-950/40 border border-emerald-500/30">
+                      <span className="w-1 bg-emerald-400 rounded-full animate-[pulse_0.6s_ease-in-out_infinite] h-2" />
+                      <span className="w-1 bg-emerald-400 rounded-full animate-[pulse_0.4s_ease-in-out_infinite_0.1s] h-4" />
+                      <span className="w-1 bg-emerald-400 rounded-full animate-[pulse_0.7s_ease-in-out_infinite_0.2s] h-3" />
+                      <span className="w-1 bg-emerald-400 rounded-full animate-[pulse_0.5s_ease-in-out_infinite_0.3s] h-5" />
+                      <span className="w-1 bg-emerald-400 rounded-full animate-[pulse_0.8s_ease-in-out_infinite_0.4s] h-2.5" />
+                    </div>
+
+                    <div className="flex items-center space-x-1.5 text-emerald-400 text-[10px]">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
+                      <span>Live Audio Dictating...</span>
+                      <span className="text-zinc-500">•</span>
+                      <span className="text-zinc-300 font-semibold">
+                        {answerText.trim() ? answerText.trim().split(/\s+/).filter(Boolean).length : 0} words
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Clear / Undo & Demo Shortcuts */}
               <div className="flex items-center space-x-2">
+                {answerText.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setAnswerText("")}
+                    className="inline-flex items-center space-x-1 rounded-lg border border-zinc-800 bg-zinc-950 px-2 py-1 text-[10px] text-zinc-400 hover:text-rose-400 hover:border-rose-500/40 transition"
+                    title="Clear verbal answer"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                    <span>Clear</span>
+                  </button>
+                )}
+
+                {previousAnswerText && previousAnswerText !== answerText && (
+                  <button
+                    type="button"
+                    onClick={() => setAnswerText(previousAnswerText)}
+                    className="inline-flex items-center space-x-1 rounded-lg border border-zinc-800 bg-zinc-950 px-2 py-1 text-[10px] text-zinc-400 hover:text-cyan-400 hover:border-cyan-500/40 transition"
+                    title="Undo speech transcription"
+                  >
+                    <RotateCcw className="h-3 w-3" />
+                    <span>Undo</span>
+                  </button>
+                )}
+
                 <button
                   type="button"
                   onClick={() => {
