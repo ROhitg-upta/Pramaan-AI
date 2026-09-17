@@ -184,24 +184,25 @@ export const HowItWorksModal: React.FC<HowItWorksModalProps> = ({
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md transition-all"
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/85 backdrop-blur-md p-4 sm:p-6 flex min-h-screen items-center justify-center py-6 sm:py-8"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-2xl rounded-2xl border border-white/10 bg-zinc-950/95 p-6 sm:p-8 shadow-2xl backdrop-blur-2xl text-zinc-100 flex flex-col justify-between min-h-[580px]"
+        className="relative w-full max-w-2xl rounded-2xl border border-white/10 bg-zinc-950/95 p-5 sm:p-7 shadow-2xl backdrop-blur-2xl text-zinc-100 flex flex-col justify-between my-auto max-h-[90vh] overflow-hidden"
       >
         {/* Close Button */}
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-5 right-5 p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition"
+          className="absolute top-4 right-4 p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition z-10"
+          aria-label="Close modal"
         >
           <X className="h-5 w-5" />
         </button>
 
         {/* Top Header Pill & Slide Step */}
-        <div>
-          <div className="flex items-center justify-between border-b border-zinc-800 pb-4 mb-6">
+        <div className="flex-shrink-0">
+          <div className="flex items-center justify-between border-b border-zinc-800/80 pb-3 mb-4 pr-8">
             <div className="flex items-center space-x-2">
               <span className="inline-flex items-center space-x-1.5 rounded-full border border-emerald-500/30 bg-emerald-950/30 px-3 py-0.5 text-[10px] font-mono font-semibold text-emerald-400">
                 <Sparkles className="h-3 w-3" />
@@ -213,64 +214,64 @@ export const HowItWorksModal: React.FC<HowItWorksModalProps> = ({
             </div>
 
             {/* Slide Dots */}
-            <div className="flex items-center space-x-1.5 mr-8">
+            <div className="flex items-center space-x-1.5">
               {slides.map((_, idx) => (
                 <button
                   key={idx}
                   type="button"
                   onClick={() => setCurrentSlide(idx)}
-                  className={`h-2 rounded-full transition-all ${
+                  className={`h-1.5 rounded-full transition-all ${
                     currentSlide === idx
-                      ? "w-6 bg-emerald-400"
-                      : "w-2 bg-zinc-800 hover:bg-zinc-700"
+                      ? "w-5 bg-emerald-400"
+                      : "w-1.5 bg-zinc-800 hover:bg-zinc-700"
                   }`}
                 />
               ))}
             </div>
           </div>
+        </div>
 
-          {/* Slide Body */}
-          <div className="space-y-4">
-            <div className="flex items-start space-x-3.5">
-              <div className={`p-2.5 rounded-xl border border-zinc-800 bg-zinc-900/80 ${current.color}`}>
-                <IconComponent className="h-6 w-6" />
-              </div>
-              <div>
-                <h2 className="font-display text-xl sm:text-2xl font-bold text-zinc-100">
-                  {current.title}
-                </h2>
-                <p className="font-mono text-xs text-zinc-400 mt-0.5">
-                  {current.subtitle}
-                </p>
-              </div>
+        {/* Slide Body (Scrollable if height exceeds screen) */}
+        <div className="flex-1 overflow-y-auto pr-1 sm:pr-2 space-y-3.5 my-1">
+          <div className="flex items-start space-x-3.5">
+            <div className={`p-2.5 rounded-xl border border-zinc-800 bg-zinc-900/80 shrink-0 ${current.color}`}>
+              <IconComponent className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
-
-            <p className="font-body text-xs sm:text-sm text-zinc-300 leading-relaxed pt-1">
-              {current.description}
-            </p>
-
-            {/* Feature Points */}
-            <ul className="space-y-1.5 font-mono text-xs text-zinc-400 pt-1">
-              {current.points.map((pt, i) => (
-                <li key={i} className="flex items-center space-x-2">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-                  <span>{pt}</span>
-                </li>
-              ))}
-            </ul>
-
-            {/* Visual Diagram Block */}
-            <div className="pt-2">{current.diagram}</div>
+            <div>
+              <h2 className="font-display text-lg sm:text-xl font-bold text-zinc-100">
+                {current.title}
+              </h2>
+              <p className="font-mono text-[11px] sm:text-xs text-zinc-400 mt-0.5">
+                {current.subtitle}
+              </p>
+            </div>
           </div>
+
+          <p className="font-body text-xs sm:text-sm text-zinc-300 leading-relaxed">
+            {current.description}
+          </p>
+
+          {/* Feature Points */}
+          <ul className="space-y-1 font-mono text-[11px] sm:text-xs text-zinc-400">
+            {current.points.map((pt, i) => (
+              <li key={i} className="flex items-center space-x-2">
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                <span>{pt}</span>
+              </li>
+            ))}
+          </ul>
+
+          {/* Visual Diagram Block */}
+          <div className="pt-1">{current.diagram}</div>
         </div>
 
         {/* Footer Controls */}
-        <div className="flex items-center justify-between border-t border-zinc-800 pt-4 mt-6">
+        <div className="flex-shrink-0 flex items-center justify-between border-t border-zinc-800/80 pt-3.5 mt-3">
           <button
             type="button"
             onClick={() => setCurrentSlide((prev) => Math.max(0, prev - 1))}
             disabled={currentSlide === 0}
-            className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-xl border border-zinc-800 bg-zinc-900 font-mono text-xs text-zinc-300 hover:bg-zinc-800 disabled:opacity-30 disabled:pointer-events-none transition"
+            className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 sm:py-2 rounded-xl border border-zinc-800 bg-zinc-900 font-mono text-xs text-zinc-300 hover:bg-zinc-800 disabled:opacity-30 disabled:pointer-events-none transition"
           >
             <ChevronLeft className="h-4 w-4" />
             <span>Previous</span>
@@ -284,7 +285,7 @@ export const HowItWorksModal: React.FC<HowItWorksModalProps> = ({
             <button
               type="button"
               onClick={() => setCurrentSlide((prev) => Math.min(slides.length - 1, prev + 1))}
-              className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-white text-zinc-950 font-mono text-xs font-bold hover:bg-zinc-200 transition"
+              className="inline-flex items-center space-x-1.5 px-4 py-1.5 sm:py-2 rounded-xl bg-white text-zinc-950 font-mono text-xs font-bold hover:bg-zinc-200 transition"
             >
               <span>Next Stage</span>
               <ChevronRight className="h-4 w-4" />
@@ -296,7 +297,7 @@ export const HowItWorksModal: React.FC<HowItWorksModalProps> = ({
                 onClose();
                 if (onStartAudit) onStartAudit();
               }}
-              className="inline-flex items-center space-x-1.5 px-5 py-2 rounded-xl bg-emerald-500 text-zinc-950 font-mono text-xs font-bold hover:bg-emerald-400 shadow-lg shadow-emerald-500/20 transition"
+              className="inline-flex items-center space-x-1.5 px-5 py-1.5 sm:py-2 rounded-xl bg-emerald-500 text-zinc-950 font-mono text-xs font-bold hover:bg-emerald-400 shadow-lg shadow-emerald-500/20 transition"
             >
               <span>Launch Quick Audit</span>
               <ArrowRight className="h-4 w-4" />
