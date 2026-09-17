@@ -61,6 +61,14 @@ export default function EvaluatorSettingsPage() {
             Configure cloud PostgreSQL connection, department branding, and automated webhook dispatch.
           </p>
         </div>
+
+        <Link
+          href="/evaluator/settings/api-keys"
+          className="inline-flex items-center space-x-2 rounded-xl border border-zinc-700 bg-zinc-800/80 hover:bg-zinc-700/80 px-4 py-2 font-mono text-xs font-semibold text-zinc-200 transition shadow-sm"
+        >
+          <Lock className="h-3.5 w-3.5 text-emerald-400" />
+          <span>API Keys &amp; Quotas ➔</span>
+        </Link>
       </div>
 
       {/* 1. Database Infrastructure Status Card */}

@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.database import init_db
 from app.api.router import api_router
+from app.api.health import router as health_router
 
 # Configure logging
 logging.basicConfig(
@@ -40,6 +41,8 @@ app.add_middleware(
 )
 
 app.include_router(api_router, prefix="/api/v1")
+app.include_router(health_router, prefix="/api/health", tags=["Health & Observability"])
+app.include_router(health_router, prefix="/health", include_in_schema=False)
 
 @app.get("/")
 def root():
@@ -48,11 +51,4 @@ def root():
         "status": "online",
         "tagline": "Har Code Ka Pramaan",
         "docs": "/docs"
-    }
-
-@app.get("/health")
-def health_check():
-    return {
-        "status": "healthy",
-        "environment": settings.APP_ENV
     }

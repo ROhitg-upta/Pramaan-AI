@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: pramaan-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-pramaan_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pramaan_secure_pass_2026}
+      POSTGRES_DB: ${POSTGRES_DB:-pramaan_db}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pramaan_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-pramaan_admin} -d ${POSTGRES_DB:-pramaan_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - pramaan-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: pramaan-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - APP_NAME=Pramaan AI
+      - APP_ENV=production
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-pramaan_admin}:${POSTGRES_PASSWORD:-pramaan_secure_pass_2026}@postgres:5432/${POSTGRES_DB:-pramaan_db}
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY:-pramaan_super_secret_jwt_salt_2026}
+      - CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,${PRODUCTION_FRONTEND_URL:-http://localhost:3000}
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - pramaan_repos:/app/tmp/repos
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - pramaan-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: pramaan-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+      - NODE_ENV=production
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    networks:
+      - pramaan-network
+
+volumes:
+  pramaan_pgdata:
+    name: pramaan_pgdata
+  pramaan_repos:
+    name: pramaan_repos
+
+networks:
+  pramaan-network:
+    name: pramaan-network
+    driver: bridge

@@ -85,12 +85,22 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRepo, activeStep }) => {
                 <Link
                   href="/evaluator/settings"
                   className={`px-2.5 py-1 rounded-lg transition ${
-                    pathname === "/evaluator/settings"
+                    pathname?.startsWith("/evaluator/settings")
                       ? "bg-zinc-800 text-zinc-100 font-semibold"
                       : "text-zinc-400 hover:text-zinc-200"
                   }`}
                 >
                   Settings
+                </Link>
+                <Link
+                  href="/pricing"
+                  className={`px-2.5 py-1 rounded-lg transition ${
+                    pathname === "/pricing"
+                      ? "bg-zinc-800 text-zinc-100 font-semibold"
+                      : "text-zinc-400 hover:text-zinc-200"
+                  }`}
+                >
+                  Pricing
                 </Link>
                 <Link
                   href="/pitch"
@@ -144,6 +154,16 @@ export const Navbar: React.FC<NavbarProps> = ({ currentRepo, activeStep }) => {
                   }`}
                 >
                   Public Proof
+                </Link>
+                <Link
+                  href="/pricing"
+                  className={`px-2.5 py-1 rounded-lg transition ${
+                    pathname === "/pricing"
+                      ? "bg-zinc-800 text-zinc-100 font-semibold"
+                      : "text-zinc-400 hover:text-zinc-200"
+                  }`}
+                >
+                  Pricing
                 </Link>
                 <Link
                   href="/pitch"
