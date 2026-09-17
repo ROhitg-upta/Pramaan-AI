@@ -244,6 +244,8 @@ export default function StudentRealtimeVivaRoom() {
   }, [answerText]);
 
   // Speech-to-Text Dictation (Web Speech API)
+  const dictationBaseRef = useRef<string>("");
+
   const toggleDictation = () => {
     if (isDictating) {
       if (recognitionRef.current) {
@@ -263,17 +265,20 @@ export default function StudentRealtimeVivaRoom() {
     }
 
     try {
+      dictationBaseRef.current = answerText;
       const recognition = new SpeechRecognition();
       recognition.continuous = true;
       recognition.interimResults = true;
       recognition.lang = "en-US";
 
       recognition.onresult = (event: any) => {
-        let transcript = "";
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-          transcript += event.results[i][0].transcript;
+        let sessionTranscript = "";
+        for (let i = 0; i < event.results.length; ++i) {
+          sessionTranscript += event.results[i][0].transcript;
         }
-        setAnswerText((prev) => `${prev} ${transcript}`.trim());
+        const base = dictationBaseRef.current.trim();
+        const fullAnswer = base ? `${base} ${sessionTranscript}` : sessionTranscript;
+        setAnswerText(fullAnswer);
       };
 
       recognition.onerror = (e: any) => {
