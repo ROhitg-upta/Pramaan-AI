@@ -592,7 +592,7 @@ export default function HoollowStyledLandingPage() {
                         setShowInputModal(false);
                         handleAudit(url);
                       }}
-                      className="w-full flex items-center justify-between rounded-xl border border-white/10 bg-zinc-900/90 px-3 py-2 text-left hover:border-emerald-500/40 hover:bg-zinc-800 transition group"
+                      className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2 rounded-xl border border-white/10 bg-zinc-900/90 px-3 py-2 text-left hover:border-emerald-500/40 hover:bg-zinc-800 transition group"
                     >
                       <div className="flex items-center space-x-2 truncate">
                         <span className="text-emerald-400">✨</span>
@@ -612,7 +612,7 @@ export default function HoollowStyledLandingPage() {
                         setShowInputModal(false);
                         handleAudit(url);
                       }}
-                      className="w-full flex items-center justify-between rounded-xl border border-white/10 bg-zinc-900/90 px-3 py-2 text-left hover:border-cyan-500/40 hover:bg-zinc-800 transition group"
+                      className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2 rounded-xl border border-white/10 bg-zinc-900/90 px-3 py-2 text-left hover:border-cyan-500/40 hover:bg-zinc-800 transition group"
                     >
                       <div className="flex items-center space-x-2 truncate">
                         <span className="text-cyan-400">🏫</span>
@@ -632,7 +632,7 @@ export default function HoollowStyledLandingPage() {
                         setShowInputModal(false);
                         handleAudit(url);
                       }}
-                      className="w-full flex items-center justify-between rounded-xl border border-rose-500/30 bg-rose-950/20 px-3 py-2 text-left hover:border-rose-500/60 hover:bg-rose-950/40 transition group"
+                      className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-2 rounded-xl border border-rose-500/30 bg-rose-950/20 px-3 py-2 text-left hover:border-rose-500/60 hover:bg-rose-950/40 transition group"
                     >
                       <div className="flex items-center space-x-2 truncate">
                         <span className="text-rose-400">🚨</span>

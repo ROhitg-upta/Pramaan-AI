@@ -51,6 +51,17 @@ export function DiffInspector({
 }: DiffInspectorProps) {
   const [copied, setCopied] = React.useState(false);
 
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleCopyCode = () => {
@@ -123,7 +134,7 @@ export function DiffInspector({
           </div>
 
           {/* Diff Viewer Body */}
-          <div className="flex-1 overflow-auto p-4 font-mono text-xs leading-6 bg-[#090d16] select-text">
+          <div className="flex-1 overflow-auto p-4 font-mono text-xs leading-6 bg-[#090d16] select-text custom-scrollbar">
             {lines.map((line, idx) => {
               const isAdded = line.type === "added";
               const isRemoved = line.type === "removed";

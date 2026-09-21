@@ -135,6 +135,7 @@ export default function StudentRealtimeVivaRoom() {
 
   // Pre-flight video stream
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const videoStreamRef = useRef<MediaStream | null>(null);
   const [videoStream, setVideoStream] = useState<MediaStream | null>(null);
   const [cameraActive, setCameraActive] = useState<boolean>(true);
 
@@ -154,6 +155,7 @@ export default function StudentRealtimeVivaRoom() {
   const [answerText, setAnswerText] = useState<string>("");
   const [previousAnswerText, setPreviousAnswerText] = useState<string>("");
   const [isDictating, setIsDictating] = useState<boolean>(false);
+  const [speechNotice, setSpeechNotice] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
 
   // Anti-cheat telemetry
@@ -164,12 +166,13 @@ export default function StudentRealtimeVivaRoom() {
   const [wpm, setWpm] = useState<number>(0);
   const [detectedFillers, setDetectedFillers] = useState<string[]>([]);
 
-  // Start Camera on pre-flight mount
+  // Start Camera on pre-flight mount with leak-free ref cleanup
   useEffect(() => {
     async function setupCamera() {
       if (typeof window === "undefined" || !navigator.mediaDevices?.getUserMedia) return;
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        videoStreamRef.current = stream;
         setVideoStream(stream);
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
@@ -184,17 +187,29 @@ export default function StudentRealtimeVivaRoom() {
     }
 
     return () => {
-      if (videoStream) {
-        videoStream.getTracks().forEach((t) => t.stop());
+      if (videoStreamRef.current) {
+        videoStreamRef.current.getTracks().forEach((t) => t.stop());
+        videoStreamRef.current = null;
       }
     };
   }, [phase]);
 
-  // Clean up speech synthesis on unmount
+  // Clean up speech synthesis, speech recognition, and audio streams on unmount
   useEffect(() => {
     return () => {
       if (typeof window !== "undefined" && "speechSynthesis" in window) {
         window.speechSynthesis.cancel();
+      }
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch {
+          // ignore
+        }
+      }
+      if (videoStreamRef.current) {
+        videoStreamRef.current.getTracks().forEach((t) => t.stop());
+        videoStreamRef.current = null;
       }
     };
   }, []);
@@ -263,11 +278,12 @@ export default function StudentRealtimeVivaRoom() {
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      alert("Web Speech API is not supported in this browser. Please type your defense.");
+      setSpeechNotice("Web Speech recognition is not supported in this browser. Please type your defense directly.");
       return;
     }
 
     try {
+      setSpeechNotice(null);
       dictationBaseRef.current = answerText;
       setPreviousAnswerText(answerText);
       const recognition = new SpeechRecognition();
@@ -278,7 +294,10 @@ export default function StudentRealtimeVivaRoom() {
       recognition.onresult = (event: any) => {
         let sessionTranscript = "";
         for (let i = 0; i < event.results.length; ++i) {
-          sessionTranscript += event.results[i][0].transcript;
+          const piece = event.results[i][0].transcript.trim();
+          if (piece) {
+            sessionTranscript += (sessionTranscript ? " " : "") + piece;
+          }
         }
         const base = dictationBaseRef.current.trim();
         const fullAnswer = base ? `${base} ${sessionTranscript}` : sessionTranscript;
@@ -288,6 +307,11 @@ export default function StudentRealtimeVivaRoom() {
       recognition.onerror = (e: any) => {
         console.warn("Speech recognition error:", e);
         setIsDictating(false);
+        if (e.error === "not-allowed") {
+          setSpeechNotice("Microphone permission was denied. Please allow microphone access or type your defense.");
+        } else if (e.error === "network") {
+          setSpeechNotice("Speech recognition network error. Please type your defense.");
+        }
       };
 
       recognition.onend = () => {
@@ -299,6 +323,7 @@ export default function StudentRealtimeVivaRoom() {
       setIsDictating(true);
     } catch (err) {
       console.warn("Dictation start failed:", err);
+      setSpeechNotice("Could not initialize voice dictation. Please type your defense.");
       setIsDictating(false);
     }
   };
@@ -643,6 +668,23 @@ export default function StudentRealtimeVivaRoom() {
               </div>
             )}
 
+            {/* Speech Fallback Warning Alert Banner */}
+            {speechNotice && (
+              <div className="rounded-xl border border-amber-500/40 bg-amber-950/30 p-3 font-mono text-xs text-amber-300 flex items-center justify-between gap-2">
+                <div className="flex items-center space-x-2">
+                  <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
+                  <span>{speechNotice}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSpeechNotice(null)}
+                  className="text-amber-400 hover:text-white text-xs px-1.5 py-0.5 rounded"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
             {/* Dictation & Demo Shortcuts Bar */}
             <div className="flex flex-wrap items-center justify-between gap-3 font-mono text-xs">
               <div className="flex flex-wrap items-center gap-2.5">
@@ -777,6 +819,21 @@ export default function StudentRealtimeVivaRoom() {
               </button>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Official Hoollow Proof of Work Watermark Footer */}
+      <div className="mt-8 rounded-xl border border-white/5 bg-zinc-950/80 p-4 flex flex-col sm:flex-row items-center justify-between text-xs font-mono text-zinc-500 gap-3">
+        <div className="inline-flex items-center space-x-2 rounded-full border border-white/80 bg-black px-3.5 py-1 shadow-sm">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="font-semibold text-zinc-100 text-[11px] tracking-wider">
+            VERIFIED UNDER HOOLLOW PROOF-OF-WORK STANDARD
+          </span>
+        </div>
+        <div className="flex items-center space-x-4 text-[11px]">
+          <span className="text-zinc-500">SESSION ROOM: {roomCode}</span>
+          <span className="text-zinc-500">•</span>
+          <span className="text-emerald-400">TELEMETRY SECURE</span>
         </div>
       </div>
     </div>

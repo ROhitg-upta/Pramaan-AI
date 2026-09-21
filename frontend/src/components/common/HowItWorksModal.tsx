@@ -232,7 +232,7 @@ export const HowItWorksModal: React.FC<HowItWorksModalProps> = ({
         </div>
 
         {/* Slide Body (Scrollable if height exceeds screen) */}
-        <div className="flex-1 overflow-y-auto pr-1 sm:pr-2 space-y-3.5 my-1">
+        <div className="flex-1 overflow-y-auto pr-1 sm:pr-2 space-y-3.5 my-1 custom-scrollbar">
           <div className="flex items-start space-x-3.5">
             <div className={`p-2.5 rounded-xl border border-zinc-800 bg-zinc-900/80 shrink-0 ${current.color}`}>
               <IconComponent className="h-5 w-5 sm:h-6 sm:w-6" />
