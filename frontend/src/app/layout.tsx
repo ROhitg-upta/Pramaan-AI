@@ -30,6 +30,14 @@ export const metadata: Metadata = {
   description:
     "Enterprise developer-first code forensics, live viva defense examination rooms, and Hoollow Proof-of-Work developer credentials.",
   keywords: ["Code Forensics", "Viva Defense", "Git Analytics", "AST Complexity", "Proof of Work", "Hoollow", "Enterprise SaaS"],
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
+    shortcut: "/icon.svg",
+    apple: "/apple-icon.png",
+  },
 };
 
 export default function RootLayout({
