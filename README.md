@@ -12,6 +12,8 @@
 [![Gemini 2.5](https://img.shields.io/badge/AI%20Engine-Gemini%202.5%20Flash-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev)
 
 <p align="center">
+
+  
   <b>Tired of freeloaders claiming equal credit in group projects? Tired of 4,000-line 3 AM ChatGPT dumps?</b><br/>
   Pramaan AI combines <b>deep git forensics</b>, <b>AST semantic weighting</b>, and an <b>autonomous line-targeted AI viva examiner</b> to turn messy repositories into verifiable, indisputable proof of work.
 </p>
