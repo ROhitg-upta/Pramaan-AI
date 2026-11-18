@@ -42,20 +42,49 @@ export async function checkBackendHealth(): Promise<{
   const start = performance.now();
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 1500);
+    const timeoutId = setTimeout(() => controller.abort(), 2500);
 
-    const res = await fetch(`${API_BASE_URL}/docs`, {
+    // Try /health first, then fallback to /docs
+    const res = await fetch(`${API_BASE_URL}/health`, {
       method: "GET",
       signal: controller.signal,
-    });
+    }).catch(() => null);
+
     clearTimeout(timeoutId);
 
-    const latencyMs = Math.round(performance.now() - start);
+    if (res && (res.ok || res.status < 500)) {
+      const latencyMs = Math.round(performance.now() - start);
+      return {
+        live: true,
+        mode: "LIVE",
+        url: API_BASE_URL,
+        latencyMs,
+      };
+    }
+
+    // Secondary probe for /docs
+    const controller2 = new AbortController();
+    const timeoutId2 = setTimeout(() => controller2.abort(), 1500);
+    const docsRes = await fetch(`${API_BASE_URL}/docs`, {
+      method: "GET",
+      signal: controller2.signal,
+    }).catch(() => null);
+    clearTimeout(timeoutId2);
+
+    if (docsRes && (docsRes.ok || docsRes.status < 500)) {
+      const latencyMs = Math.round(performance.now() - start);
+      return {
+        live: true,
+        mode: "LIVE",
+        url: API_BASE_URL,
+        latencyMs,
+      };
+    }
+
     return {
-      live: res.ok || res.status < 500,
-      mode: res.ok ? "LIVE" : "GITHUB_DIRECT",
+      live: false,
+      mode: "GITHUB_DIRECT",
       url: API_BASE_URL,
-      latencyMs,
     };
   } catch {
     return {
@@ -94,25 +123,30 @@ export async function analyzeRepo(
     sessionStorage.setItem("pramaan_target_url", cleanUrl);
   }
 
-  // 1. Try FastAPI backend if running
+  // 1. Try FastAPI backend (Render / Local) with resilient 3500ms timeout
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3500);
+
     const res = await fetch(`${API_BASE_URL}/api/v1/analyze/repo`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ repo_url: cleanUrl, branch }),
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
 
     if (res.ok) {
       const data = await res.json();
       return {
         analysis_id: data.analysis_id,
         status: "processing",
-        message: "FastAPI PyDriller forensic pipeline initialized.",
+        message: "FastAPI PyDriller forensic pipeline initialized on Render.",
         isRealRepo: true,
       };
     }
   } catch {
-    // FastAPI backend offline — seamlessly fall through to Direct GitHub API engine
+    // FastAPI backend offline or sleeping on Render — seamlessly fall through to Direct GitHub API engine
   }
 
   // 2. Direct GitHub Ingestion Engine for real repositories (safe gh__ double underscore delimiter)
@@ -304,7 +338,27 @@ export async function getVivaQuestions(
     };
   }
 
-  // Try Next.js server-side /api/viva/generate
+  // 1. Try Render FastAPI backend if active
+  if (!analysisId.startsWith("demo-") && !analysisId.startsWith("gh-") && !analysisId.startsWith("gh__")) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2500);
+      const renderRes = await fetch(`${API_BASE_URL}/api/v1/viva/${analysisId}/${contributorId}/questions`, {
+        signal: controller.signal,
+      });
+      clearTimeout(timeoutId);
+      if (renderRes.ok) {
+        const renderData = await renderRes.json();
+        if (renderData && renderData.questions && renderData.questions.length > 0) {
+          return renderData;
+        }
+      }
+    } catch {
+      // Render sleeping or endpoint unavailable — fall through to Next.js route
+    }
+  }
+
+  // 2. Next.js server-side /api/viva/generate (Real Grounded Questions)
   try {
     const report = await getAnalysisReport(analysisId);
     const contributor = report.contributors.find((c) => c.id === contributorId);
@@ -327,7 +381,7 @@ export async function getVivaQuestions(
       }
     }
   } catch (err) {
-    console.warn("Server viva generation fallback:", err);
+    console.warn("Next.js viva generation fallback:", err);
   }
 
   // Fallback to grounded questions based on report's audited files
@@ -363,7 +417,31 @@ export async function evaluateVivaAnswer(
   questionText?: string,
   expectedKeyConcepts?: string[]
 ): Promise<VivaEvaluationResponse> {
-  // Try Next.js server-side /api/viva/evaluate
+  // 1. Try Render FastAPI backend if active
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2500);
+    const renderRes = await fetch(`${API_BASE_URL}/api/v1/viva/evaluate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        question_id: questionId,
+        answer: studentAnswer,
+        question_text: questionText,
+        expected_concepts: expectedKeyConcepts,
+      }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    if (renderRes.ok) {
+      const evalData = await renderRes.json();
+      return evalData;
+    }
+  } catch {
+    // Render sleeping — fall through to Next.js route
+  }
+
+  // 2. Next.js server-side /api/viva/evaluate (Real Grounded Evaluation)
   try {
     const res = await fetch("/api/viva/evaluate", {
       method: "POST",
@@ -380,7 +458,7 @@ export async function evaluateVivaAnswer(
       return await res.json();
     }
   } catch {
-    // Fall through to client evaluation
+    // Fall through to deterministic client heuristic
   }
 
   // Client-side intelligent evaluation heuristic
