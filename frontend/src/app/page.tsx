@@ -27,6 +27,10 @@ import { analyzeRepo } from "@/lib/api";
 import { useCountUp } from "@/hooks/useCountUp";
 import { LiveCodeSandbox } from "@/components/landing/LiveCodeSandbox";
 import { HowItWorksModal } from "@/components/common/HowItWorksModal";
+import { WovenCanvas } from "@/components/ui/woven-light-hero";
+import { DoodleCrewFooter } from "@/components/ui/doodle-crew-footer";
+import { InteractiveListPreview } from "@/components/ui/interactive-list-preview";
+import { FORENSIC_ARC_ITEMS } from "@/components/landing/ForensicArcPreviews";
 
 export default function HoollowStyledLandingPage() {
   const router = useRouter();
@@ -111,8 +115,16 @@ export default function HoollowStyledLandingPage() {
 
   return (
     <div className="relative min-h-screen bg-[#09090b] text-white overflow-x-hidden flex flex-col justify-between selection:bg-emerald-500/20 selection:text-emerald-200">
-      {/* 1. Main Hero Container */}
-      <main className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 pb-16 flex-1 flex flex-col justify-center">
+      {/* 1. Main Hero Section with Full-Bleed WovenCanvas Background */}
+      <section className="relative w-full overflow-hidden bg-[#09090b] border-b border-white/5">
+        {/* Full-Bleed Three.js Woven Light Particle Canvas Background */}
+        <WovenCanvas className="absolute inset-0 w-full h-full z-0 pointer-events-auto" />
+
+        {/* Ambient Overlay for Text Readability & Contrast */}
+        <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-[#09090b]/30 to-[#09090b] z-0" />
+
+        {/* Hero Content Container */}
+        <div className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 pb-16 flex-1 flex flex-col justify-center">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
           
           {/* Left Column: Hero Narrative */}
@@ -223,22 +235,22 @@ export default function HoollowStyledLandingPage() {
             </motion.div>
           </div>
 
-          {/* Right Column: The 4 Pixel-Art Builders Video */}
+          {/* Right Column: Restored Full-Width Real Builders Squad Video Card */}
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="lg:col-span-5 flex justify-center items-center relative"
+            className="lg:col-span-5 relative z-10 w-full flex justify-center items-center"
           >
-            {/* The Looping Pixel Art Team Video */}
-            <div className="relative rounded-2xl overflow-hidden border border-zinc-800 shadow-2xl bg-zinc-950 max-w-[540px] w-full">
+            {/* The Looping Pixel Art Team Video in Original Aspect Ratio */}
+            <div className="relative w-full aspect-video rounded-2xl overflow-hidden border border-zinc-800/80 shadow-[0_20px_50px_rgba(0,0,0,0.85)] bg-zinc-950/90 backdrop-blur-md">
               <video
                 src="/builders_loop.mp4"
                 autoPlay
                 loop
                 muted
                 playsInline
-                className="w-full h-auto object-cover block"
+                className="w-full h-full object-cover block"
               />
 
               {/* Subtle Overlay Badge */}
@@ -254,7 +266,8 @@ export default function HoollowStyledLandingPage() {
           </motion.div>
 
         </div>
-      </main>
+      </div>
+    </section>
 
       {/* ══════════════════════════════════════════════════════════════════ */}
       {/* SECTION: HOMEPAGE LIVE AST CODE PLAYGROUND                         */}
@@ -280,79 +293,11 @@ export default function HoollowStyledLandingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mt-16">
-            {[
-              {
-                act: "ACT 01",
-                title: "Repo Ingestion",
-                desc: "Traverses commit graph, cleans noise, deduplicates multiple email aliases via Levenshtein matching.",
-                icon: Terminal,
-                color: "text-purple-400",
-                badgeBg: "bg-purple-500/10 border-purple-500/20",
-              },
-              {
-                act: "ACT 02",
-                title: "Live Forensics",
-                desc: "Parses AST complexity tiers and triggers real-time anomaly detection against Big Bang dumps.",
-                icon: Scan,
-                color: "text-cyan-400",
-                badgeBg: "bg-cyan-500/10 border-cyan-500/20",
-              },
-              {
-                act: "ACT 03",
-                title: "Evidence Wall",
-                desc: "Interactive DVR timeline scrubber + 5-axis DNA radar chart comparing authentic builders vs passengers.",
-                icon: BarChart3,
-                color: "text-amber-400",
-                badgeBg: "bg-amber-500/10 border-amber-500/20",
-              },
-              {
-                act: "ACT 04",
-                title: "Autonomous Viva",
-                desc: "Gemini interrogates contributors on specific lines with anti-cheat paste & audio analysis.",
-                icon: Mic,
-                color: "text-rose-400",
-                badgeBg: "bg-rose-500/10 border-rose-500/20",
-              },
-              {
-                act: "ACT 05",
-                title: "Verified Receipt",
-                desc: "Radial score reveal with confetti + cryptographic thermal receipt scannable via QR code.",
-                icon: ShieldCheck,
-                color: "text-emerald-400",
-                badgeBg: "bg-emerald-500/10 border-emerald-500/20",
-              },
-            ].map((step, idx) => {
-              const Icon = step.icon;
-              return (
-                <div
-                  key={step.act}
-                  className="relative rounded-2xl border border-white/10 bg-zinc-900/50 p-6 flex flex-col justify-between hover:border-zinc-700 transition duration-300"
-                >
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-mono tracking-widest text-zinc-500">
-                        {step.act}
-                      </span>
-                      <div className={`p-2 rounded-lg border ${step.badgeBg}`}>
-                        <Icon className={`w-4 h-4 ${step.color}`} />
-                      </div>
-                    </div>
-
-                    <h3 className="font-display text-base font-bold text-zinc-100 mt-4">
-                      {step.title}
-                    </h3>
-                    <p className="mt-2 text-xs text-zinc-400 leading-relaxed font-body">
-                      {step.desc}
-                    </p>
-                  </div>
-
-                  <div className="mt-6 pt-3 border-t border-white/5 flex items-center text-[10px] font-mono text-zinc-500">
-                    <span>Phase 0{idx + 1} of 05</span>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="mt-12">
+            <InteractiveListPreview
+              items={FORENSIC_ARC_ITEMS}
+              bgColor="#07090D"
+            />
           </div>
         </div>
       </section>
@@ -513,43 +458,12 @@ export default function HoollowStyledLandingPage() {
         </div>
       </section>
 
-      {/* 2. Giant Bottom Infinite Outlined Marquee Ticker */}
-      <div className="relative w-full overflow-hidden border-t border-white/5 py-4 bg-black select-none pointer-events-none">
-        <motion.div
-          animate={{ x: ["0%", "-50%"] }}
-          transition={{
-            repeat: Infinity,
-            ease: "linear",
-            duration: 28,
-          }}
-          className="flex whitespace-nowrap"
-        >
-          {[0, 1].map((copyIndex) => (
-            <div
-              key={copyIndex}
-              className="flex items-center text-5xl sm:text-7xl lg:text-8xl font-black uppercase tracking-wider"
-              style={{
-                WebkitTextStroke: "1.5px rgba(255, 255, 255, 0.42)",
-                color: "rgba(255, 255, 255, 0.09)",
-                fontFamily: "var(--font-display, sans-serif)",
-              }}
-            >
-              <span className="mx-6 text-zinc-300 drop-shadow-[0_0_20px_rgba(255,255,255,0.15)]">
-                Proof of Work &gt; Degree
-              </span>
-              <span className="mx-6 text-purple-400">•</span>
-              <span className="mx-6">Har Code Ka Pramaan</span>
-              <span className="mx-6 text-purple-400">•</span>
-              <span className="mx-6">Zero AI Fluff</span>
-              <span className="mx-6 text-purple-400">•</span>
-              <span className="mx-6">Real Builders Only</span>
-              <span className="mx-6 text-purple-400">•</span>
-              <span className="mx-6">Autonomous Forensics</span>
-              <span className="mx-6 text-purple-400">•</span>
-            </div>
-          ))}
-        </motion.div>
-      </div>
+      {/* 2. Interactive Doodle Crew Footer */}
+      <DoodleCrewFooter
+        brandWordmark="PRAMAAN AI"
+        tagline="Autonomous Code Forensics & Hoollow Proof-of-Work Verification"
+        onCtaClick={() => setShowInputModal(true)}
+      />
 
       {/* 3. Input Modal (Linear/Raycast Style Command Drawer) */}
       <AnimatePresence>

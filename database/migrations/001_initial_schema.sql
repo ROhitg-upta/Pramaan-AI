@@ -79,6 +79,7 @@ CREATE TABLE IF NOT EXISTS assessments (
     candidate_github_numeric_id BIGINT NULL,
     account_linkage VARCHAR(64) NOT NULL DEFAULT 'UNLINKED', -- 'GITHUB_ACCOUNT_LINKED', 'UNLINKED'
     assigned_evaluator_id VARCHAR(64) NULL REFERENCES users(id),
+    organization_name VARCHAR(255) NULL,
     status VARCHAR(32) NOT NULL DEFAULT 'SCHEDULED', -- 'SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'FLAGGED'
     is_practice BOOLEAN NOT NULL DEFAULT FALSE,
     git_forensics_score INT NOT NULL,

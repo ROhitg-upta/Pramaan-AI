@@ -84,3 +84,30 @@ def require_evaluator(current_user: Dict[str, Any] = Depends(get_current_user)) 
         )
 
     return current_user
+
+def verify_assessment_evaluator_access(
+    current_user: Dict[str, Any],
+    assigned_evaluator_id: Optional[str] = None,
+    organization_name: Optional[str] = None,
+) -> bool:
+    """
+    Enforces resource-scoped evaluator access.
+    Institutional verification alone does not grant access to every assessment.
+    Requires explicit assigned evaluator ID or matching organization name.
+    """
+    role = current_user.get("role")
+    is_verified = current_user.get("isInstitutionVerified", False)
+    if role != "EVALUATOR" or not is_verified:
+        return False
+
+    user_id = current_user.get("userId")
+    user_org = current_user.get("organizationName")
+
+    if assigned_evaluator_id and user_id == assigned_evaluator_id:
+        return True
+
+    if organization_name and user_org and user_org == organization_name:
+        return True
+
+    return False
+

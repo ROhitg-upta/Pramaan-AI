@@ -54,14 +54,18 @@ export async function GET(req: NextRequest) {
       }
 
       const isCandidateOwner = session.userId === assessment.candidate_user_id;
+      // Evaluator access is strictly resource-scoped: must be the explicitly assigned evaluator or match authorized institution
       const isAssignedEvaluator =
         session.role === "EVALUATOR" &&
         session.isInstitutionVerified &&
-        (assessment.assigned_evaluator_id === null || session.userId === assessment.assigned_evaluator_id);
+        Boolean(
+          (assessment.assigned_evaluator_id && session.userId === assessment.assigned_evaluator_id) ||
+          (assessment.organization_name && session.organizationName && session.organizationName === assessment.organization_name)
+        );
 
       if (!isCandidateOwner && !isAssignedEvaluator) {
         return NextResponse.json(
-          { error: "FORBIDDEN", message: "You are not authorized to view this private assessment." },
+          { error: "FORBIDDEN", message: "You are not authorized to view this private assessment. Explicit evaluator assignment or candidate ownership required." },
           { status: 403 }
         );
       }
@@ -115,7 +119,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { analysis_run_id, contributor_id, is_practice_requested } = body;
+    const { analysis_run_id, contributor_id, is_practice_requested, initial_questions } = body;
 
     if (!analysis_run_id || !contributor_id) {
       return NextResponse.json(
@@ -204,6 +208,33 @@ export async function POST(req: NextRequest) {
       ]
     );
 
+    // Persist server-stored questions and code evidence before any student answers
+    if (Array.isArray(initial_questions) && initial_questions.length > 0) {
+      for (let i = 0; i < initial_questions.length; i++) {
+        const q = initial_questions[i];
+        await query(
+          `INSERT INTO assessment_exchanges (
+            id, assessment_id, question_index, commit_sha, file_path, line_start, line_end,
+            code_snippet, question_text, expected_concepts, trap_signals
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+          ON CONFLICT (assessment_id, question_index) DO NOTHING`,
+          [
+            `ex_${assessmentId}_${i}`,
+            assessmentId,
+            i,
+            q.commit_hash || "head",
+            q.file_path || "unknown",
+            q.line_start || 1,
+            q.line_end || 30,
+            q.code_snippet || "",
+            q.question_text || "",
+            JSON.stringify(q.expected_key_concepts || q.expected_concepts || []),
+            JSON.stringify(q.trap_signals || []),
+          ]
+        );
+      }
+    }
+
     return NextResponse.json({
       assessment_id: assessmentId,
       analysis_run_id,
@@ -213,6 +244,7 @@ export async function POST(req: NextRequest) {
       account_linkage: accountLinkage,
       viva_defense_score: null,
       final_pramaan_score: null,
+      questions_persisted: Array.isArray(initial_questions) ? initial_questions.length : 0,
       message: isPractice
         ? "Practice assessment initialized. No official credential will be issued."
         : "Official assessment record initialized on authoritative server ledger.",
