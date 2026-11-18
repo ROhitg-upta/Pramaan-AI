@@ -80,7 +80,12 @@ export default function VivaTerminalPage() {
     if (!activeQuestion) return;
     setIsEvaluating(true);
     try {
-      const evalRes = await evaluateVivaAnswer(activeQuestion.id, answer);
+      const evalRes = await evaluateVivaAnswer(
+        activeQuestion.id,
+        answer,
+        activeQuestion.question_text,
+        activeQuestion.expected_key_concepts
+      );
       setEvaluationResult(evalRes);
     } catch (err) {
       console.error("Evaluation failed:", err);
@@ -105,7 +110,7 @@ export default function VivaTerminalPage() {
       <div className="mx-auto max-w-7xl px-4 py-16 text-center">
         <div className="rounded-2xl border border-white/5 bg-zinc-900/50 p-12 backdrop-blur-xl">
           <p className="font-mono text-sm text-zinc-400">
-            Synthesizing line-targeted viva defense questions with Gemini Engine...
+            Synthesizing line-targeted viva defense questions grounded in real code...
           </p>
         </div>
       </div>
@@ -223,15 +228,9 @@ export default function VivaTerminalPage() {
             VERIFIED UNDER HOOLLOW PROOF-OF-WORK STANDARD
           </span>
         </div>
-        <a
-          href="https://hoollow.com"
-          target="_blank"
-          rel="noreferrer"
-          className="text-emerald-400 hover:text-emerald-300 transition inline-flex items-center space-x-1"
-        >
-          <span>Export to Hoollow Profile</span>
-          <span>↗</span>
-        </a>
+        <span className="text-xs text-zinc-500 font-mono">
+          Defense grounded in real authored commit diffs
+        </span>
       </div>
     </div>
   );

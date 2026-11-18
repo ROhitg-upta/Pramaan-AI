@@ -17,6 +17,7 @@ export interface DiffInspectorProps {
   commitHash?: string;
   authorName?: string;
   commitMessage?: string;
+  rawDiff?: string;
   lines?: DiffLine[];
 }
 
@@ -40,14 +41,39 @@ export const defaultMockDiffLines: DiffLine[] = [
   { lineNum: 87, content: "        pass", type: "context" },
 ];
 
+function parseRawDiff(patch: string): DiffLine[] {
+  const result: DiffLine[] = [];
+  const lines = patch.split("\n");
+  let lineNum = 1;
+
+  for (const line of lines) {
+    if (line.startsWith("@@")) {
+      const match = line.match(/\+(\d+)/);
+      if (match) {
+        lineNum = parseInt(match[1], 10);
+      }
+      result.push({ lineNum: 0, content: line, type: "context" });
+    } else if (line.startsWith("+")) {
+      result.push({ lineNum: lineNum++, content: line, type: "added" });
+    } else if (line.startsWith("-")) {
+      result.push({ lineNum: lineNum, content: line, type: "removed" });
+    } else {
+      result.push({ lineNum: lineNum++, content: line, type: "context" });
+    }
+  }
+
+  return result.length > 0 ? result : defaultMockDiffLines;
+}
+
 export function DiffInspector({
   isOpen,
   onClose,
   filePath = "src/engine/collaborative_filter.py",
   commitHash = "3f82a9d",
   authorName = "Aryan Kumar",
-  commitMessage = "added recommender engine [03:42 AM dump]",
-  lines = defaultMockDiffLines,
+  commitMessage = "modified source file",
+  rawDiff,
+  lines,
 }: DiffInspectorProps) {
   const [copied, setCopied] = React.useState(false);
 
@@ -64,8 +90,10 @@ export function DiffInspector({
 
   if (!isOpen) return null;
 
+  const displayLines = rawDiff ? parseRawDiff(rawDiff) : (lines || defaultMockDiffLines);
+
   const handleCopyCode = () => {
-    const raw = lines.map((l) => l.content).join("\n");
+    const raw = displayLines.map((l) => l.content).join("\n");
     navigator.clipboard.writeText(raw);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -78,97 +106,90 @@ export function DiffInspector({
         className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
       >
         <motion.div
-          onClick={(e) => e.stopPropagation()}
-          initial={{ opacity: 0, scale: 0.96, y: 12 }}
+          initial={{ opacity: 0, scale: 0.95, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.96, y: 12 }}
+          exit={{ opacity: 0, scale: 0.95, y: 15 }}
           transition={{ duration: 0.2 }}
-          className="relative w-full max-w-4xl max-h-[85vh] flex flex-col rounded-2xl border border-white/15 bg-zinc-950 shadow-2xl overflow-hidden"
+          onClick={(e) => e.stopPropagation()}
+          className="relative w-full max-w-4xl rounded-2xl border border-white/10 bg-zinc-950 p-6 shadow-2xl overflow-hidden flex flex-col max-h-[85vh]"
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-zinc-900/80">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 rounded-lg bg-zinc-800 border border-white/10 text-cyan-400">
-                <FileCode className="w-4 h-4" />
+          <div className="flex items-start justify-between border-b border-white/5 pb-4 mb-4">
+            <div>
+              <div className="flex items-center space-x-2 text-xs font-mono text-emerald-400 mb-1">
+                <FileCode className="h-4 w-4" />
+                <span className="font-semibold">{filePath}</span>
               </div>
-              <div>
-                <div className="flex items-center space-x-2">
-                  <span className="font-mono text-sm font-bold text-zinc-100">
-                    {filePath}
-                  </span>
-                  <span className="font-mono text-xs text-zinc-500 bg-zinc-800 px-2 py-0.5 rounded">
-                    #{commitHash}
-                  </span>
-                </div>
-                <div className="font-mono text-xs text-zinc-400 mt-0.5">
-                  Author: <span className="text-zinc-200">{authorName}</span> • &ldquo;{commitMessage}&rdquo;
-                </div>
+              <div className="flex flex-wrap items-center gap-3 text-xs font-mono text-zinc-400">
+                <span className="flex items-center space-x-1">
+                  <GitCommit className="h-3.5 w-3.5 text-zinc-500" />
+                  <span>commit: {commitHash?.slice(0, 7) || "head"}</span>
+                </span>
+                <span>•</span>
+                <span>Author: {authorName}</span>
+                {commitMessage && (
+                  <>
+                    <span>•</span>
+                    <span className="text-zinc-500 max-w-xs truncate">&ldquo;{commitMessage}&rdquo;</span>
+                  </>
+                )}
               </div>
             </div>
 
             <div className="flex items-center space-x-2">
               <button
+                type="button"
                 onClick={handleCopyCode}
-                className="inline-flex items-center space-x-1 px-3 py-1.5 rounded-lg border border-zinc-700 bg-zinc-800 hover:bg-zinc-700 text-xs font-mono text-zinc-300 transition"
+                className="inline-flex items-center space-x-1.5 rounded-lg border border-white/10 bg-zinc-900 px-3 py-1.5 font-mono text-xs text-zinc-400 hover:text-zinc-100 hover:border-zinc-700 transition"
               >
-                {copied ? (
-                  <>
-                    <Check className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Copied</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-3.5 h-3.5 text-zinc-400" />
-                    <span>Copy Diff</span>
-                  </>
-                )}
+                {copied ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <Copy className="h-3.5 w-3.5" />}
+                <span>{copied ? "Copied" : "Copy"}</span>
               </button>
-
               <button
+                type="button"
                 onClick={onClose}
-                className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-800 transition"
+                className="rounded-lg p-1.5 text-zinc-500 hover:bg-zinc-900 hover:text-zinc-200 transition"
               >
-                <X className="w-5 h-5" />
+                <X className="h-5 w-5" />
               </button>
             </div>
           </div>
 
-          {/* Diff Viewer Body */}
-          <div className="flex-1 overflow-auto p-4 font-mono text-xs leading-6 bg-[#090d16] select-text custom-scrollbar">
-            {lines.map((line, idx) => {
+          {/* Diff Content */}
+          <div className="flex-1 overflow-y-auto rounded-xl border border-white/5 bg-zinc-900/60 font-mono text-xs leading-relaxed p-4 select-text">
+            {displayLines.map((line, idx) => {
               const isAdded = line.type === "added";
               const isRemoved = line.type === "removed";
-
-              const rowBg = isAdded
-                ? "bg-emerald-950/30 text-emerald-300 border-l-2 border-emerald-500"
-                : isRemoved
-                ? "bg-rose-950/30 text-rose-300 border-l-2 border-rose-500"
-                : "text-zinc-400 hover:bg-zinc-900/40";
 
               return (
                 <div
                   key={idx}
-                  className={`flex items-center space-x-3 px-3 py-0.5 rounded ${rowBg}`}
+                  className={`flex items-start px-2 py-0.5 rounded ${
+                    isAdded
+                      ? "bg-emerald-500/10 text-emerald-300 font-medium"
+                      : isRemoved
+                      ? "bg-rose-500/10 text-rose-300 line-through opacity-70"
+                      : "text-zinc-400 hover:bg-white/[0.02]"
+                  }`}
                 >
-                  <span className="w-8 text-right text-zinc-600 select-none text-[11px]">
-                    {line.lineNum}
+                  <span className="w-10 shrink-0 text-zinc-600 select-none text-right pr-3">
+                    {line.lineNum > 0 ? line.lineNum : "..."}
                   </span>
-                  <span className="w-3 select-none text-zinc-500 font-bold">
+                  <span className="w-4 shrink-0 select-none text-center">
                     {isAdded ? "+" : isRemoved ? "-" : " "}
                   </span>
-                  <span className="flex-1 whitespace-pre">{line.content}</span>
+                  <span className="flex-1 whitespace-pre-wrap break-all font-mono">
+                    {line.content.replace(/^[+-]/, "")}
+                  </span>
                 </div>
               );
             })}
           </div>
 
-          {/* Footer Warning Notice */}
-          <div className="px-6 py-3 border-t border-zinc-800 bg-zinc-900/60 flex items-center justify-between text-xs font-mono text-zinc-400">
-            <div className="flex items-center space-x-2 text-rose-400">
-              <ShieldAlert className="w-4 h-4" />
-              <span>FLAG_BIG_BANG Evidence: 4,821 lines added in 1 commit with 0 deletions.</span>
-            </div>
-            <span className="text-[11px] text-zinc-500">AST TIER 3 INSPECTION</span>
+          {/* Footer note */}
+          <div className="mt-4 flex items-center justify-between text-[11px] font-mono text-zinc-500 border-t border-white/5 pt-3">
+            <span>Verified diff patch extracted directly from commit graph</span>
+            <span>Press ESC or click outside to close</span>
           </div>
         </motion.div>
       </div>

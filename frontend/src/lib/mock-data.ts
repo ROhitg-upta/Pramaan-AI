@@ -126,6 +126,17 @@ export interface FullReportResponse {
   timeline: TimelineCommit[];
   anomalies: Anomaly[];
   executive_summary: string;
+  audited_files?: {
+    filePath: string;
+    lines: number;
+    primaryAuthor: string;
+    contributorId: string;
+    tier: number;
+    lastCommitHash: string;
+    category: "ALGORITHMIC" | "CONTROLLER" | "UI_LAYOUT" | "BOILERPLATE";
+    diffSnippet?: string;
+  }[];
+  is_demo?: boolean;
 }
 
 export interface VivaQuestion {

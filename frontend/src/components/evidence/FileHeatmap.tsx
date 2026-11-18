@@ -13,6 +13,7 @@ export interface FileItem {
   tier: number; // 0, 1, 2, 3
   lastCommitHash: string;
   category: "ALGORITHMIC" | "CONTROLLER" | "UI_LAYOUT" | "BOILERPLATE";
+  diffSnippet?: string;
 }
 
 export const defaultFileMap: FileItem[] = [
@@ -106,15 +107,18 @@ interface FileHeatmapProps {
 }
 
 export function FileHeatmap({
-  files = defaultFileMap,
+  files,
   contributors = [],
   onInspectFile,
 }: FileHeatmapProps) {
+  const displayFiles = Array.isArray(files) && files.length > 0 ? files : defaultFileMap;
+  const isUsingDefault = !Array.isArray(files) || files.length === 0;
+
   const [selectedTier, setSelectedTier] = useState<number | "ALL">("ALL");
   const [selectedAuthor, setSelectedAuthor] = useState<string>("ALL");
   const [hoveredFile, setHoveredFile] = useState<FileItem | null>(null);
 
-  const filteredFiles = files.filter((f) => {
+  const filteredFiles = displayFiles.filter((f) => {
     if (selectedTier !== "ALL" && f.tier !== selectedTier) return false;
     if (selectedAuthor !== "ALL" && f.primaryAuthor !== selectedAuthor) return false;
     return true;
@@ -150,133 +154,162 @@ export function FileHeatmap({
     }
   };
 
-  const getAuthorPillColor = (name: string) => {
-    if (name.includes("Rohit")) return "text-emerald-400 border-emerald-500/30 bg-emerald-950/20";
-    if (name.includes("Aryan")) return "text-rose-400 border-rose-500/30 bg-rose-950/20";
-    return "text-amber-400 border-amber-500/30 bg-amber-950/20";
-  };
+  const authors = Array.from(new Set(displayFiles.map((f) => f.primaryAuthor)));
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-zinc-900/60 p-6 backdrop-blur-xl shadow-2xl space-y-6">
-      {/* Header & Filter Controls */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/5 pb-5">
+    <div className="rounded-2xl border border-white/10 bg-zinc-900/60 p-6 backdrop-blur-xl shadow-2xl">
+      {/* Header and Filter Controls */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-5">
         <div>
-          <div className="inline-flex items-center space-x-2 rounded-full border border-purple-500/20 bg-purple-950/20 px-2.5 py-0.5 text-[10px] font-mono text-purple-300">
-            <span>✦ SEMANTIC AST CODEBASE TREEMAP</span>
+          <div className="flex items-center space-x-2">
+            <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-purple-500/10 text-purple-400 border border-purple-500/20">
+              <Layers className="w-3 h-3 mr-1" />
+              AST COMPLEXITY TREEMAP
+            </span>
+            <span className="text-zinc-500 text-xs font-mono">• {displayFiles.length} Audited Files</span>
           </div>
-          <h3 className="font-display text-lg font-bold text-zinc-100 mt-1">
-            File Ownership &amp; Complexity Heatmap
-          </h3>
-          <p className="font-mono text-xs text-zinc-400">
-            Visualizing who owns what code, weighted by AST algorithmic depth tiers.
+          <h2 className="font-display text-lg font-bold text-zinc-100 mt-1">
+            File Complexity &amp; Authorship Matrix
+          </h2>
+          <p className="text-xs text-zinc-400 font-mono mt-0.5">
+            Click any file card to inspect its real commit diff patch.
           </p>
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
-          {/* Tier filter */}
-          <div className="flex items-center space-x-1 bg-zinc-950/80 p-1 rounded-xl border border-white/5">
-            <span className="text-zinc-500 pl-2">Tier:</span>
-            <select
-              value={selectedTier}
-              onChange={(e) =>
-                setSelectedTier(
-                  e.target.value === "ALL" ? "ALL" : Number(e.target.value)
-                )
-              }
-              aria-label="Filter files by AST complexity tier"
-              className="bg-transparent px-2 py-1 text-zinc-300 focus:outline-none cursor-pointer"
+        {/* Filter Chips */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Tier Filters */}
+          <div className="inline-flex rounded-lg bg-zinc-950 border border-white/5 p-1 font-mono text-xs">
+            <button
+              type="button"
+              onClick={() => setSelectedTier("ALL")}
+              className={`px-2.5 py-1 rounded-md transition ${
+                selectedTier === "ALL" ? "bg-white/10 text-zinc-100 font-semibold" : "text-zinc-500 hover:text-zinc-300"
+              }`}
             >
-              <option value="ALL" className="bg-zinc-900">All Tiers</option>
-              <option value="3" className="bg-zinc-900">Tier 3 (Algorithmic)</option>
-              <option value="2" className="bg-zinc-900">Tier 2 (Controllers)</option>
-              <option value="1" className="bg-zinc-900">Tier 1 (UI / Templates)</option>
-              <option value="0" className="bg-zinc-900">Tier 0 (Boilerplate)</option>
-            </select>
+              All Tiers
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedTier(3)}
+              className={`px-2.5 py-1 rounded-md transition ${
+                selectedTier === 3 ? "bg-purple-500/20 text-purple-300 font-semibold" : "text-zinc-500 hover:text-purple-400"
+              }`}
+            >
+              Tier 3
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedTier(2)}
+              className={`px-2.5 py-1 rounded-md transition ${
+                selectedTier === 2 ? "bg-cyan-500/20 text-cyan-300 font-semibold" : "text-zinc-500 hover:text-cyan-400"
+              }`}
+            >
+              Tier 2
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedTier(1)}
+              className={`px-2.5 py-1 rounded-md transition ${
+                selectedTier === 1 ? "bg-amber-500/20 text-amber-300 font-semibold" : "text-zinc-500 hover:text-amber-400"
+              }`}
+            >
+              Tier 1
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedTier(0)}
+              className={`px-2.5 py-1 rounded-md transition ${
+                selectedTier === 0 ? "bg-zinc-800 text-zinc-300 font-semibold" : "text-zinc-500 hover:text-zinc-300"
+              }`}
+            >
+              Tier 0
+            </button>
           </div>
 
-          {/* Author filter */}
-          <div className="flex items-center space-x-1 bg-zinc-950/80 p-1 rounded-xl border border-white/5">
-            <span className="text-zinc-500 pl-2">Author:</span>
+          {/* Author Filter Dropdown */}
+          {authors.length > 1 && (
             <select
               value={selectedAuthor}
               onChange={(e) => setSelectedAuthor(e.target.value)}
-              aria-label="Filter files by primary author"
-              className="bg-transparent px-2 py-1 text-zinc-300 focus:outline-none cursor-pointer"
+              className="rounded-lg border border-white/10 bg-zinc-950 px-3 py-1.5 font-mono text-xs text-zinc-300 focus:outline-none focus:border-purple-500"
             >
-              <option value="ALL" className="bg-zinc-900">All Contributors</option>
-              <option value="Rohit Sharma" className="bg-zinc-900">Rohit Sharma</option>
-              <option value="Aryan Kumar" className="bg-zinc-900">Aryan Kumar</option>
-              <option value="Priya Patel" className="bg-zinc-900">Priya Patel</option>
+              <option value="ALL">All Authors ({authors.length})</option>
+              {authors.map((author) => (
+                <option key={author} value={author}>
+                  {author}
+                </option>
+              ))}
             </select>
-          </div>
+          )}
         </div>
       </div>
 
-      {/* Grid of File Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredFiles.map((file, idx) => {
-          const tierStyle = getTierBadge(file.tier);
+      {/* Grid of Files */}
+      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+        <AnimatePresence>
+          {filteredFiles.map((file) => {
+            const badge = getTierBadge(file.tier);
 
-          return (
-            <motion.div
-              key={file.filePath}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.05 }}
-              onMouseEnter={() => setHoveredFile(file)}
-              onMouseLeave={() => setHoveredFile(null)}
-              onClick={() => onInspectFile?.(file)}
-              className={`rounded-xl border p-4 cursor-pointer transition-all duration-200 group ${tierStyle.cardBorder}`}
-            >
-              <div className="flex items-center justify-between pb-2 border-b border-white/5">
-                <span
-                  className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${tierStyle.color}`}
-                >
-                  {tierStyle.label}
-                </span>
-                <span className="text-[10px] font-mono text-zinc-500">
-                  {file.lines} lines
-                </span>
-              </div>
+            return (
+              <motion.div
+                key={file.filePath}
+                layout
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.96 }}
+                transition={{ duration: 0.2 }}
+                onMouseEnter={() => setHoveredFile(file)}
+                onMouseLeave={() => setHoveredFile(null)}
+                onClick={() => onInspectFile?.(file)}
+                className={`group relative rounded-xl border p-4 transition-all duration-200 cursor-pointer ${badge.cardBorder}`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center space-x-2 min-w-0">
+                    <FileCode className="h-4 w-4 shrink-0 text-zinc-400 group-hover:text-zinc-200 transition" />
+                    <span className="font-mono text-xs font-semibold text-zinc-200 truncate group-hover:text-white transition">
+                      {file.filePath}
+                    </span>
+                  </div>
 
-              <div className="mt-3 flex items-start space-x-2">
-                <FileCode className="w-4 h-4 text-zinc-400 mt-0.5 shrink-0" />
-                <span className="font-mono text-xs font-semibold text-zinc-200 group-hover:text-white truncate">
-                  {file.filePath}
-                </span>
-              </div>
+                  <span
+                    className={`shrink-0 rounded px-1.5 py-0.5 font-mono text-[9px] font-semibold border ${badge.color}`}
+                  >
+                    {badge.label}
+                  </span>
+                </div>
 
-              <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between font-mono text-[11px]">
-                <span
-                  className={`px-2 py-0.5 rounded-md border text-[10px] ${getAuthorPillColor(
-                    file.primaryAuthor
-                  )}`}
-                >
-                  {file.primaryAuthor}
-                </span>
+                <div className="mt-3 flex items-center justify-between font-mono text-[11px] text-zinc-500">
+                  <div className="flex items-center space-x-1.5">
+                    <User className="h-3 w-3 text-zinc-600" />
+                    <span className="text-zinc-400">{file.primaryAuthor}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-zinc-400 font-medium">{file.lines} lines</span>
+                    <span className="text-zinc-600">#{file.lastCommitHash.slice(0, 7)}</span>
+                  </div>
+                </div>
 
-                <span className="text-zinc-500 flex items-center space-x-1 group-hover:text-zinc-300 transition">
-                  <Eye className="w-3 h-3" />
-                  <span>Inspect Diff</span>
-                </span>
-              </div>
-            </motion.div>
-          );
-        })}
+                <div className="mt-2.5 flex items-center justify-between text-[10px] font-mono text-zinc-500 border-t border-white/5 pt-2">
+                  <span className="uppercase text-zinc-600">{file.category}</span>
+                  <span className="text-emerald-400/80 group-hover:text-emerald-300 flex items-center space-x-1 transition">
+                    <Eye className="h-3 w-3" />
+                    <span>Inspect Diff</span>
+                  </span>
+                </div>
+              </motion.div>
+            );
+          })}
+        </AnimatePresence>
       </div>
 
-      {/* Legend Footer */}
-      <div className="pt-4 border-t border-white/5 flex flex-wrap items-center justify-between gap-4 font-mono text-xs text-zinc-500">
-        <div className="flex items-center space-x-4">
-          <span className="text-zinc-400 font-semibold">Tiers:</span>
-          <span className="text-purple-400">● Tier 3 (3.0x Core Logic)</span>
-          <span className="text-cyan-400">● Tier 2 (1.0x Controllers)</span>
-          <span className="text-amber-400">● Tier 1 (0.2x UI/Templates)</span>
-          <span className="text-zinc-500">● Tier 0 (0.0x Boilerplate)</span>
+      {filteredFiles.length === 0 && (
+        <div className="mt-8 rounded-xl border border-white/5 bg-zinc-950 p-8 text-center">
+          <p className="font-mono text-xs text-zinc-500">
+            No files match the selected filter criteria.
+          </p>
         </div>
-        <div>Total Files: {files.length}</div>
-      </div>
+      )}
     </div>
   );
 }

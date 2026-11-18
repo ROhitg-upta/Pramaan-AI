@@ -2,8 +2,8 @@
  * Pramaan AI — Production-Grade Hybrid Forensics Client
  * Priority:
  * 1. Live FastAPI Backend (http://localhost:8000) for deep AST + PyDriller Git mining
- * 2. Direct GitHub Ingestion Engine for real GitHub repositories
- * 3. Explicit Demo fallback ONLY when user requests "demo-smart-campus"
+ * 2. Next.js Server-Side / Direct GitHub Ingestion Engine for real GitHub repositories
+ * 3. Explicit Demo fallback ONLY when user explicitly selects "demo-smart-campus"
  */
 
 import {
@@ -42,7 +42,7 @@ export async function checkBackendHealth(): Promise<{
   const start = performance.now();
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2000);
+    const timeoutId = setTimeout(() => controller.abort(), 1500);
 
     const res = await fetch(`${API_BASE_URL}/docs`, {
       method: "GET",
@@ -68,7 +68,7 @@ export async function checkBackendHealth(): Promise<{
 
 /**
  * 1. Ingest and start analysis
- * Tries FastAPI backend first. If offline, runs real GitHub Ingestion Engine!
+ * Tries FastAPI backend first. If offline, initializes Direct GitHub Ingestion Engine!
  */
 export async function analyzeRepo(
   repoUrl: string,
@@ -76,22 +76,25 @@ export async function analyzeRepo(
 ): Promise<{ analysis_id: string; status: string; message: string; isRealRepo: boolean }> {
   const cleanUrl = repoUrl.trim();
 
+  // If user explicitly asks for demo
+  if (cleanUrl === "demo" || cleanUrl.includes("demo-smart-campus") || cleanUrl.includes("demo/smart-campus-app")) {
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("pramaan_target_url", "https://github.com/demo/smart-campus-app");
+    }
+    return {
+      analysis_id: "demo-smart-campus",
+      status: "processing",
+      message: "Loading official Smart Campus demo case...",
+      isRealRepo: false,
+    };
+  }
+
   // Persist exact target URL in sessionStorage
   if (typeof window !== "undefined") {
     sessionStorage.setItem("pramaan_target_url", cleanUrl);
   }
 
-  // If user explicitly asks for demo
-  if (cleanUrl === "demo" || cleanUrl.includes("demo-smart-campus")) {
-    return {
-      analysis_id: "demo-smart-campus",
-      status: "processing",
-      message: "Loading official demo case...",
-      isRealRepo: false,
-    };
-  }
-
-  // 1. Try FastAPI backend
+  // 1. Try FastAPI backend if running
   try {
     const res = await fetch(`${API_BASE_URL}/api/v1/analyze/repo`, {
       method: "POST",
@@ -124,13 +127,7 @@ export async function analyzeRepo(
     };
   }
 
-  // Fallback if URL is completely invalid
-  return {
-    analysis_id: "demo-smart-campus",
-    status: "processing",
-    message: "Invalid URL provided. Loaded demo project.",
-    isRealRepo: false,
-  };
+  throw new Error(`Invalid GitHub repository URL: "${cleanUrl}". Please provide a format like https://github.com/owner/repo.`);
 }
 
 /**
@@ -160,14 +157,14 @@ export async function getAnalysisStatus(
       status: "completed",
       progress_percent: 100,
       current_step: "Analysis complete. Forensic dossier ready.",
-      elapsed_seconds: 4.5,
+      elapsed_seconds: 2.5,
       phases: [
-        { name: "Cloning Repository", status: "completed", duration_ms: 1200 },
-        { name: "Mining Commits", status: "completed", duration_ms: 1500 },
-        { name: "Identity Resolution", status: "completed", duration_ms: 400 },
-        { name: "AST Tier Classification", status: "completed", duration_ms: 900 },
-        { name: "Anomaly Detection", status: "completed", duration_ms: 300 },
-        { name: "Viva Question Generation", status: "completed", duration_ms: 500 },
+        { name: "Repository Ingestion", status: "completed", duration_ms: 600 },
+        { name: "Commit Mining", status: "completed", duration_ms: 800 },
+        { name: "Identity Resolution", status: "completed", duration_ms: 300 },
+        { name: "AST Tier Classification", status: "completed", duration_ms: 500 },
+        { name: "Anomaly Detection", status: "completed", duration_ms: 200 },
+        { name: "Viva Question Generation", status: "completed", duration_ms: 400 },
       ],
       live_metrics: {
         total_commits: cached.total_commits,
@@ -215,6 +212,15 @@ function getCachedReport(analysisId: string): FullReportResponse | null {
  * 3. GET /api/v1/analyze/{id}/report — Complete forensic audit report
  */
 export async function getAnalysisReport(analysisId: string): Promise<FullReportResponse> {
+  // If explicitly requested demo, return demo data
+  if (analysisId === "demo" || analysisId === "demo-smart-campus") {
+    return {
+      ...mockFullReport,
+      analysis_id: "demo-smart-campus",
+      is_demo: true,
+    };
+  }
+
   // 1. Check client-side cached report
   const cached = getCachedReport(analysisId);
   if (cached) {
@@ -242,7 +248,6 @@ export async function getAnalysisReport(analysisId: string): Promise<FullReportR
   if (analysisId.startsWith("gh__") || analysisId.startsWith("gh-")) {
     let targetRepoUrl: string | null = null;
 
-    // Check sessionStorage first for exact entered URL
     if (typeof window !== "undefined") {
       const stored = sessionStorage.getItem("pramaan_target_url");
       if (stored) {
@@ -250,7 +255,6 @@ export async function getAnalysisReport(analysisId: string): Promise<FullReportR
       }
     }
 
-    // Decode from analysisId if not in sessionStorage
     if (!targetRepoUrl) {
       if (analysisId.startsWith("gh__")) {
         const raw = analysisId.replace(/^gh__/, "");
@@ -272,21 +276,13 @@ export async function getAnalysisReport(analysisId: string): Promise<FullReportR
     }
 
     if (targetRepoUrl) {
-      try {
-        const data = await analyzeGitHubRepoDirectly(targetRepoUrl);
-        memoryReportCache.set(analysisId, data);
-        return data;
-      } catch (err) {
-        console.error("Direct GitHub analysis failed:", err);
-      }
+      const data = await analyzeGitHubRepoDirectly(targetRepoUrl);
+      memoryReportCache.set(analysisId, data);
+      return data;
     }
   }
 
-  // 4. If nothing else, and analysisId is literally demo, return demo
-  return {
-    ...mockFullReport,
-    analysis_id: analysisId,
-  };
+  throw new Error(`Report for analysis "${analysisId}" could not be found or loaded.`);
 }
 
 /**
@@ -297,34 +293,52 @@ export async function getVivaQuestions(
   contributorId: string,
   questionCount = 3
 ): Promise<VivaQuestionsResponse> {
-  // 1. Try FastAPI backend
-  if (!analysisId.startsWith("demo-") && !analysisId.startsWith("gh-") && !analysisId.startsWith("gh__")) {
-    try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/viva/${analysisId}/questions`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contributor_id: contributorId,
-          question_count: questionCount,
-        }),
-      });
-
-      if (res.ok) {
-        return await res.json();
-      }
-    } catch {
-      // Fall through
-    }
+  // Demo mode
+  if (analysisId === "demo-smart-campus" || analysisId === "demo") {
+    const questions: VivaQuestion[] =
+      mockVivaQuestions[contributorId] || mockVivaQuestions["contrib-002"] || [];
+    return {
+      contributor_id: contributorId,
+      contributor_name: "Aryan Kumar",
+      questions: questions.slice(0, questionCount),
+    };
   }
 
-  // 2. Check if we have the report for this analysisId
+  // Try Next.js server-side /api/viva/generate
+  try {
+    const report = await getAnalysisReport(analysisId);
+    const contributor = report.contributors.find((c) => c.id === contributorId);
+
+    const res = await fetch("/api/viva/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contributorName: contributor?.primary_name || "Contributor",
+        repoName: report.repo_url.replace("https://github.com/", ""),
+        auditedFiles: (report as any).audited_files || [],
+        contributorId,
+      }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.questions && data.questions.length > 0) {
+        return data;
+      }
+    }
+  } catch (err) {
+    console.warn("Server viva generation fallback:", err);
+  }
+
+  // Fallback to grounded questions based on report's audited files
   const report = await getAnalysisReport(analysisId);
   const contributor = report.contributors.find((c) => c.id === contributorId);
 
-  if (contributor && !analysisId.startsWith("demo-")) {
+  if (contributor) {
     const realQuestions = generateRealVivaQuestions(
       contributor,
-      report.repo_url.replace("https://github.com/", "")
+      report.repo_url.replace("https://github.com/", ""),
+      (report as any).audited_files || []
     );
     return {
       contributor_id: contributorId,
@@ -333,32 +347,32 @@ export async function getVivaQuestions(
     };
   }
 
-  // 3. Fallback for demo repository
-  const questions: VivaQuestion[] =
-    mockVivaQuestions[contributorId] || mockVivaQuestions["contrib-002"] || [];
-
   return {
     contributor_id: contributorId,
-    contributor_name: contributor?.primary_name || "Contributor",
-    questions: questions.slice(0, questionCount),
+    contributor_name: "Contributor",
+    questions: [],
   };
 }
 
 /**
- * 5. POST /api/v1/viva/evaluate — Evaluate candidate's viva defense
+ * 5. Evaluate candidate's viva defense
  */
 export async function evaluateVivaAnswer(
   questionId: string,
-  studentAnswer: string
+  studentAnswer: string,
+  questionText?: string,
+  expectedKeyConcepts?: string[]
 ): Promise<VivaEvaluationResponse> {
-  // Try live backend first
+  // Try Next.js server-side /api/viva/evaluate
   try {
-    const res = await fetch(`${API_BASE_URL}/api/v1/viva/evaluate`, {
+    const res = await fetch("/api/viva/evaluate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        question_id: questionId,
-        student_answer: studentAnswer,
+        questionId,
+        answer: studentAnswer,
+        questionText,
+        expectedKeyConcepts,
       }),
     });
 
@@ -366,36 +380,46 @@ export async function evaluateVivaAnswer(
       return await res.json();
     }
   } catch {
-    // Fall through
+    // Fall through to client evaluation
   }
 
   // Client-side intelligent evaluation heuristic
   const lower = studentAnswer.toLowerCase();
-  const hasBuilderSignals =
-    lower.includes("lock") ||
-    lower.includes("mutex") ||
-    lower.includes("concurrency") ||
-    lower.includes("starvation") ||
-    lower.includes("timeout") ||
-    lower.includes("ast") ||
-    lower.includes("cache") ||
-    lower.includes("background");
+  const concepts: string[] = expectedKeyConcepts || ["error handling", "performance", "state"];
+  const covered = concepts.filter((c: string) => lower.includes(c.toLowerCase()));
+  const missed = concepts.filter((c: string) => !lower.includes(c.toLowerCase()));
 
-  if (hasBuilderSignals && studentAnswer.length > 50) {
-    return {
-      ...mockVivaEvalBuilder,
-      question_id: questionId,
-      score: Math.min(98, 84 + Math.floor(Math.random() * 12)),
-      feedback:
-        "Student demonstrated solid understanding of concurrency semantics and timeout fallbacks.",
-    };
+  const builderSignals: string[] = [];
+  if (lower.includes("error") || lower.includes("try") || lower.includes("catch") || lower.includes("fallback")) {
+    builderSignals.push("Concrete error handling & exception flow referenced.");
+  }
+  if (lower.includes("state") || lower.includes("cache") || lower.includes("memory") || lower.includes("db") || lower.includes("async")) {
+    builderSignals.push("System state and runtime resource awareness demonstrated.");
   }
 
+  const accuracyScore = Math.min(95, Math.max(30, 45 + covered.length * 20));
+  const authenticityScore = Math.min(95, Math.max(25, 50 + builderSignals.length * 15));
+  const edgeCaseScore = Math.min(95, Math.max(20, 40 + (lower.includes("edge") || lower.includes("fail") ? 30 : 10)));
+  const compositeScore = Math.round(0.40 * accuracyScore + 0.35 * authenticityScore + 0.25 * edgeCaseScore);
+  const verdict = compositeScore >= 75 ? "VERIFIED_BUILDER" : compositeScore >= 50 ? "PROBABLE_AUTHOR" : "SUSPECT_AI_FLUFF";
+  const feedback = verdict === "VERIFIED_BUILDER"
+    ? "Solid understanding of core implementation and architectural choices demonstrated."
+    : verdict === "PROBABLE_AUTHOR"
+    ? "Adequate baseline understanding, though answers lacked deep edge case handling."
+    : "Answers relied on generic statements rather than demonstrating line-level comprehension.";
+
   return {
-    ...mockVivaEvalFluff,
     question_id: questionId,
-    score: Math.max(18, Math.min(38, Math.floor(studentAnswer.length / 5))),
-    feedback:
-      "Answer lacks technical specifics. Failed to address concurrency lock mechanisms or scaling bottlenecks.",
+    score: compositeScore,
+    technical_accuracy: accuracyScore,
+    tactical_authenticity: authenticityScore,
+    edge_case_preparedness: edgeCaseScore,
+    verdict,
+    key_concepts_covered: covered,
+    missed_concepts: missed,
+    builder_signals_detected: builderSignals,
+    fluff_signals_detected: [],
+    feedback,
+    evaluator_note: `Candidate demonstrated ${verdict.replace(/_/g, " ").toLowerCase()} characteristics with ${builderSignals.length} practical implementation signals.`,
   };
 }

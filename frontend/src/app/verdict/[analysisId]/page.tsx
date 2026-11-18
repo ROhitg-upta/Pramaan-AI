@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Scale, FastForward, ShieldAlert, CheckCircle, Sparkles } from "lucide-react";
+import { Scale, FastForward, ShieldAlert, CheckCircle, Sparkles, ArrowLeft } from "lucide-react";
 import { getAnalysisReport } from "@/lib/api";
 import { type FullReportResponse, mockFullReport } from "@/lib/mock-data";
 import { useTypewriter } from "@/hooks/useTypewriter";
@@ -33,8 +34,8 @@ export default function VerdictPage() {
 
   // Typewriter title for "⚖️ THE VERDICT"
   const { displayedText: titleText } = useTypewriter("⚖️ THE VERDICT", {
-    speed: 60,
-    delay: 800,
+    speed: 40,
+    delay: 200,
   });
 
   // Fetch report data on mount
@@ -53,14 +54,14 @@ export default function VerdictPage() {
     loadReport();
   }, [analysisId]);
 
-  // Timed Cinematic Sequence
+  // Timed Cinematic Sequence (Fast, responsive timing)
   useEffect(() => {
     const timers = [
-      setTimeout(() => setRevealPhase("title"), 700),
-      setTimeout(() => setRevealPhase("scores"), 2600),
-      setTimeout(() => setRevealPhase("subscores"), 5200),
-      setTimeout(() => setRevealPhase("summary"), 7400),
-      setTimeout(() => setRevealPhase("receipt"), 10500),
+      setTimeout(() => setRevealPhase("title"), 300),
+      setTimeout(() => setRevealPhase("scores"), 1000),
+      setTimeout(() => setRevealPhase("subscores"), 1800),
+      setTimeout(() => setRevealPhase("summary"), 2400),
+      setTimeout(() => setRevealPhase("receipt"), 3000),
     ];
 
     return () => timers.forEach(clearTimeout);
@@ -76,7 +77,7 @@ export default function VerdictPage() {
   };
 
   const handleScoreComplete = (score: number) => {
-    if (score >= 85 && !hasTriggeredConfetti) {
+    if (score >= 80 && !hasTriggeredConfetti) {
       fireBuilderConfetti();
       setHasTriggeredConfetti(true);
     }
@@ -87,16 +88,17 @@ export default function VerdictPage() {
   };
 
   const currentReport = report || mockFullReport;
+  const isDemo = analysisId === "demo-smart-campus" || (currentReport as any).is_demo;
 
-  // Filter primary contributors to compare (e.g., Rohit & Aryan)
-  const primaryContributors = currentReport.contributors.slice(0, 2);
+  // Render primary contributors (up to 4 in grid)
+  const displayContributors = currentReport.contributors.slice(0, 4);
 
   return (
-    <div className="relative min-h-screen bg-[#050507] text-white flex flex-col items-center justify-start pt-16 pb-36 px-4 sm:px-6 overflow-x-hidden select-none">
+    <div className="relative min-h-screen bg-[#050507] text-white flex flex-col items-center justify-start pt-12 pb-36 px-4 sm:px-6 overflow-x-hidden select-none">
       {/* Background forensic grid */}
       <ForensicGridBg />
 
-      {/* Red Vignette Alarm Flash for anomalous / freeloader scores */}
+      {/* Red Vignette Alarm Flash for anomalous scores */}
       <AnimatePresence>
         {showRedVignette && (
           <motion.div
@@ -114,89 +116,96 @@ export default function VerdictPage() {
       </AnimatePresence>
 
       {/* Top Controls Bar */}
-      <div className="w-full max-w-5xl flex items-center justify-between z-20 mb-8">
-        <div className="inline-flex items-center space-x-2 text-xs font-mono text-zinc-500">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span>ACT 5 • FINAL FORENSIC VERDICT</span>
+      <div className="w-full max-w-5xl flex flex-wrap items-center justify-between gap-4 z-20 mb-8 border-b border-white/5 pb-4">
+        <div className="flex items-center space-x-3 text-xs font-mono">
+          <Link
+            href={`/evidence/${analysisId}`}
+            className="inline-flex items-center space-x-1.5 text-zinc-400 hover:text-zinc-200 transition border border-white/10 bg-zinc-900/60 px-3 py-1.5 rounded-lg"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to Evidence Wall</span>
+          </Link>
+          <span className="text-zinc-600">/</span>
+          {isDemo ? (
+            <div className="inline-flex items-center space-x-1.5 rounded-full border border-amber-500/40 bg-amber-950/30 px-3 py-1 text-[11px] font-mono font-bold text-amber-300">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+              <span>DEMO DATA • SMART CAMPUS SAMPLE</span>
+            </div>
+          ) : (
+            <div className="inline-flex items-center space-x-1.5 rounded-full border border-emerald-500/40 bg-emerald-950/30 px-3 py-1 text-[11px] font-mono font-bold text-emerald-300">
+              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+              <span>VERIFIED AUDIT • REAL REPOSITORY</span>
+            </div>
+          )}
         </div>
 
         {revealPhase !== "receipt" && (
           <button
             onClick={handleFastForward}
-            className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border border-zinc-800 bg-zinc-900/60 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 text-xs font-mono transition"
+            className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg border border-zinc-800 bg-zinc-900/80 hover:bg-zinc-800 text-zinc-300 hover:text-white text-xs font-mono transition shadow-sm"
           >
-            <FastForward className="w-3.5 h-3.5" />
-            <span>Fast Forward</span>
+            <FastForward className="w-3.5 h-3.5 text-emerald-400" />
+            <span>Show Full Receipt Instantly</span>
           </button>
         )}
       </div>
 
-      {/* Phase 2: Title & Briefing */}
-      <div className="text-center z-10 max-w-2xl mx-auto min-h-[110px]">
+      {/* Title & Briefing */}
+      <div className="text-center z-10 max-w-2xl mx-auto min-h-[90px]">
         {revealPhase !== "darkness" && (
           <motion.div
-            initial={{ opacity: 0, y: -12 }}
+            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.4 }}
           >
-            <h1 className="text-4xl sm:text-5xl font-black font-display tracking-tight text-white flex items-center justify-center gap-3">
+            <h1 className="text-3xl sm:text-4xl font-black font-display tracking-tight text-white flex items-center justify-center gap-3">
               <span>{titleText}</span>
             </h1>
 
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.8, duration: 0.6 }}
-              className="text-zinc-400 text-sm sm:text-base font-mono mt-3"
-            >
-              Auditing Repository:{" "}
+            <p className="text-zinc-400 text-xs sm:text-sm font-mono mt-2">
+              Audited Repository:{" "}
               <span className="text-zinc-200 font-semibold underline decoration-zinc-700">
                 {currentReport.repo_url.replace("https://github.com/", "")}
               </span>
-            </motion.p>
+            </p>
 
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.2, duration: 0.6 }}
-              className="mt-1.5 text-xs font-mono text-zinc-500"
-            >
-              ID: PRM-2026-{analysisId.slice(0, 8).toUpperCase()} • {currentReport.total_commits} Commits Mined • {currentReport.total_lines_audited.toLocaleString()} Lines Audited
-            </motion.div>
+            <div className="mt-1 text-[11px] font-mono text-zinc-500">
+              ID: PRM-{analysisId.slice(0, 10).toUpperCase()} • {currentReport.total_commits} Commits Mined • {currentReport.total_lines_audited.toLocaleString()} Lines Audited
+            </div>
           </motion.div>
         )}
       </div>
 
-      {/* Phase 3 & 4: Contributor Score Reveal & Sub-scores */}
+      {/* Contributor Score Reveal & Sub-scores */}
       {revealPhase !== "darkness" && revealPhase !== "title" && (
-        <div className="w-full max-w-4xl mx-auto mt-8 z-10">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 sm:gap-16 items-start justify-center">
-            {primaryContributors.map((contrib, idx) => {
+        <div className="w-full max-w-5xl mx-auto mt-6 z-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 items-start justify-center">
+            {displayContributors.map((contrib, idx) => {
               const score = contrib.pramaan_score ?? 50;
               const color =
-                score >= 70 ? "emerald" : score >= 40 ? "amber" : "crimson";
+                score >= 70 ? "emerald" : score >= 45 ? "amber" : "crimson";
 
               return (
                 <div
                   key={contrib.id}
-                  className="flex flex-col items-center bg-zinc-950/40 border border-zinc-800/80 rounded-2xl p-6 sm:p-8 backdrop-blur-sm shadow-xl"
+                  className="flex flex-col items-center bg-zinc-950/40 border border-zinc-800/80 rounded-2xl p-6 backdrop-blur-sm shadow-xl"
                 >
                   <ScoreRevealCircle
                     score={score}
                     name={contrib.primary_name}
                     verdict={contrib.verdict}
                     color={color}
-                    delay={idx * 0.4}
+                    delay={idx * 0.2}
                     onAnimationComplete={() => handleScoreComplete(score)}
                   />
 
-                  {/* Sub-Score Breakdown (Phase 4) */}
+                  {/* Sub-Score Breakdown */}
                   {["subscores", "summary", "receipt"].includes(revealPhase) && (
                     <SubScoreBreakdown
                       gitForensics={contrib.sub_scores.git_forensics}
                       astComplexity={contrib.sub_scores.ast_complexity}
-                      vivaDefense={contrib.sub_scores.viva_defense ?? (score >= 70 ? 98 : 24)}
-                      delay={idx * 0.3}
+                      vivaDefense={contrib.sub_scores.viva_defense ?? (score >= 70 ? 92 : 30)}
+                      delay={idx * 0.2}
                     />
                   )}
                 </div>
@@ -206,22 +215,22 @@ export default function VerdictPage() {
         </div>
       )}
 
-      {/* Phase 5: Executive Forensic Summary */}
+      {/* Executive Forensic Summary */}
       {["summary", "receipt"].includes(revealPhase) && (
-        <div className="w-full z-10">
+        <div className="w-full z-10 mt-6 max-w-4xl mx-auto">
           <ExecutiveSummary
             text={
               currentReport.executive_summary ||
-              "Rohit Sharma is the primary architect of this project, authoring 92% of Tier-3 algorithmic logic across 41 atomic commits spanning 14 days of consistent development. Aryan Kumar's sole contribution — a single commit of 4,821 lines at 03:42 AM with zero deletions — exhibits 98% structural similarity to a public tutorial."
+              "Audit verification completed. Contributor attribution derived from chronological commit graph analysis and AST complexity weighting."
             }
-            delay={200}
+            delay={100}
           />
         </div>
       )}
 
-      {/* Phase 6: Torn-Edge Digital Thermal Receipt & Action Buttons */}
+      {/* Digital Thermal Receipt & Action Buttons */}
       {revealPhase === "receipt" && (
-        <div className="w-full z-10 flex flex-col items-center">
+        <div className="w-full z-10 flex flex-col items-center mt-6">
           <ThermalReceipt report={currentReport} />
           <ExportActions analysisId={analysisId} />
 
@@ -233,15 +242,9 @@ export default function VerdictPage() {
                 VERIFIED UNDER HOOLLOW PROOF-OF-WORK STANDARD
               </span>
             </div>
-            <a
-              href="https://hoollow.com"
-              target="_blank"
-              rel="noreferrer"
-              className="text-emerald-400 hover:text-emerald-300 transition inline-flex items-center space-x-1"
-            >
-              <span>Export to Hoollow Profile</span>
-              <span>↗</span>
-            </a>
+            <span className="text-zinc-500 text-xs">
+              {isDemo ? "Demonstration Case Receipt" : "Cryptographically Signed Proof"}
+            </span>
           </div>
         </div>
       )}
