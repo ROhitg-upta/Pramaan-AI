@@ -16,7 +16,7 @@ const DEFAULT_TOOLTIPS: Record<string, string> = {
   ingest: "Clones shallow git history up to 50 commits to analyze real author trees.",
   mining: "Traverses file diffs line-by-line using PyDriller to calculate deletions vs additions.",
   identity: "Fuzzy matches contributor aliases and git email addresses to expose single users masquerading as teams.",
-  ast: "Constructs Abstract Syntax Trees to measure cyclomatic complexity and algorithmic density.",
+  ast: "Classifies code by semantic complexity tiers using path patterns and regex heuristics (Non-AST).",
   heuristics: "Checks for Zero Churn, 3 AM Big Bang Dumps, and panic commits before deadlines.",
   viva: "Extracts challenged line numbers from Tier-3 code and prompts Gemini 2.5 Flash for oral defense questions.",
 };

@@ -32,6 +32,7 @@ export interface CertificateData {
   evaluatorTitle: string;
   institution: string;
   sha256Hash: string;
+  isDemo?: boolean;
 }
 
 const DEFAULT_CERT_DATA: CertificateData = {
@@ -55,12 +56,34 @@ const DEFAULT_CERT_DATA: CertificateData = {
 };
 
 export function ProofCertificatePDF({
-  data = DEFAULT_CERT_DATA,
+  data,
 }: {
-  data?: CertificateData;
+  data?: CertificateData | null;
 }) {
   const certificateRef = useRef<HTMLDivElement | null>(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = React.useState(false);
+
+  if (!data) {
+    return (
+      <div className="rounded-3xl border border-white/10 bg-zinc-950 p-12 text-center font-mono space-y-4 max-w-xl mx-auto shadow-2xl">
+        <div className="h-12 w-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto">
+          <ShieldCheck className="h-6 w-6" />
+        </div>
+        <h3 className="font-display text-lg font-bold text-zinc-100">Official Credential Not Issued</h3>
+        <p className="text-xs text-zinc-400 leading-relaxed">
+          Verifiable Proof-of-Work certificates are issued strictly upon server-side completion of an oral viva defense assessment. No completed assessment was found for this session.
+        </p>
+        <div className="pt-2">
+          <Link
+            href="/"
+            className="inline-flex items-center space-x-2 rounded-xl bg-white text-zinc-950 px-4 py-2 text-xs font-semibold hover:bg-zinc-200 transition"
+          >
+            <span>Return to Repository Audit</span>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const handlePrint = () => {
     if (typeof window !== "undefined") {
@@ -273,6 +296,15 @@ export function ProofCertificatePDF({
               <span>Pramaan Trust Grade: {data.grade} ({data.pramaanScore}/100)</span>
             </div>
           </div>
+        </div>
+
+        {/* Honest Assessment Disclaimer */}
+        <div className="pt-3 border-t border-white/5 text-center font-mono text-[9px] text-zinc-500">
+          {data.isDemo ? (
+            <span className="text-amber-400 font-bold">✦ DEMO PRACTICE FIXTURE — NOT AN OFFICIAL ASSESSED CREDENTIAL ✦</span>
+          ) : (
+            <span>Verifies technical comprehension and ability to defend submitted code changes in an oral viva defense session. Does not constitute mathematical proof of exclusive authorship.</span>
+          )}
         </div>
       </div>
     </div>

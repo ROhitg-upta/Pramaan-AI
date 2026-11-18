@@ -77,12 +77,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (stored) {
         setUser(JSON.parse(stored));
       } else {
-        // Default demo session: Evaluator
-        setUser(PRESET_USERS.evaluator);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(PRESET_USERS.evaluator));
+        // Unauthenticated visitor by default: NEVER auto-assign evaluator identity
+        setUser(null);
       }
     } catch {
-      setUser(PRESET_USERS.evaluator);
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
@@ -102,29 +101,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loginWithGithub = async (targetRole: UserRole = "STUDENT") => {
     setIsLoading(true);
-    // Simulate GitHub OAuth handshake
-    await new Promise((r) => setTimeout(r, 600));
-
-    const newUser: AuthUser = {
-      id: `gh-${Date.now()}`,
-      email: "github.developer@pramaan.ai",
-      fullName: targetRole === "EVALUATOR" ? "Prof. Evaluator (GitHub Verified)" : "Verified Builder (@github)",
-      role: targetRole,
-      githubUsername: "verified-builder",
-      avatarUrl: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80",
-      organizationName: "Pramaan Verification Network",
-      verifiedAt: new Date().toISOString(),
-    };
-
-    setUser(newUser);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(newUser));
+    // Real GitHub OAuth requires server GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET
+    await new Promise((r) => setTimeout(r, 400));
     setIsLoading(false);
-
-    if (targetRole === "EVALUATOR") {
-      router.push("/evaluator/dashboard");
-    } else {
-      router.push("/student/dashboard");
-    }
+    console.warn("GitHub OAuth app credentials are not configured in environment variables.");
   };
 
   const switchRole = (newRole: UserRole) => {

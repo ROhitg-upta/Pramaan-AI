@@ -492,28 +492,13 @@ export async function POST(req: NextRequest) {
         });
       }
 
-      // Calculate component scores
+      // Calculate component scores (Viva and final Pramaan score are NULL before oral assessment)
       const gitForensicsScore = isBigBang ? 35 : Math.min(100, Math.round(50 + Math.min(30, churnRatio * 1.5) + Math.min(20, commitsCount * 3)));
-      const astComplexityScore = Math.min(100, Math.round(30 + tier3Pct * 0.5 + tier2Pct * 0.2));
-      const vivaDefenseScore = isBigBang ? 30 : Math.min(95, Math.round(75 + (tier3Pct > 30 ? 15 : 5)));
-
-      const pramaanScore = Math.round(
-        0.35 * gitForensicsScore + 0.25 * astComplexityScore + 0.40 * vivaDefenseScore
-      );
-
-      const verdict =
-        pramaanScore >= 75
-          ? "VERIFIED_BUILDER"
-          : pramaanScore >= 50
-          ? "PROBABLE_AUTHOR"
-          : "SUSPECT_FREELOADER";
-
-      const avatarColor =
-        verdict === "VERIFIED_BUILDER"
-          ? "#10B981"
-          : verdict === "PROBABLE_AUTHOR"
-          ? "#06B6D4"
-          : "#EF4444";
+      const heuristicComplexityScore = Math.min(100, Math.round(30 + tier3Pct * 0.5 + tier2Pct * 0.2));
+      const vivaDefenseScore = null; // Unassessed before viva completion
+      const pramaanScore = null;     // Unassessed before viva completion
+      const verdict = "PENDING_ASSESSMENT";
+      const avatarColor = "#06B6D4";
 
       contributors.push({
         id: `contrib-${author.login.toLowerCase().replace(/[^a-z0-9]/g, "")}`,
@@ -547,17 +532,17 @@ export async function POST(req: NextRequest) {
           : [],
         sub_scores: {
           git_forensics: gitForensicsScore,
-          ast_complexity: astComplexityScore,
-          viva_defense: vivaDefenseScore,
+          ast_complexity: heuristicComplexityScore,
+          viva_defense: null,
         },
-        pramaan_score: pramaanScore,
-        verdict,
+        pramaan_score: null,
+        verdict: "PENDING_ASSESSMENT",
         radar_axes: {
           algorithmic_depth: Math.min(100, tier3Pct * 2 + 10),
           iterative_churn: Math.min(100, Math.round(churnRatio * 2)),
           commit_consistency: Math.min(100, Math.round((commitsCount / Math.max(totalRepoCommits, 1)) * 100)),
           code_breadth: Math.min(100, activeDays * 15),
-          ast_complexity: astComplexityScore,
+          ast_complexity: heuristicComplexityScore,
         },
       });
     });
@@ -566,11 +551,8 @@ export async function POST(req: NextRequest) {
     contributors.sort((a, b) => b.total_commits - a.total_commits);
 
     const topContributor = contributors[0] || { primary_name: "Developer", total_commits: 0, churn_ratio: 0 };
-    const avgScore = contributors.length > 0
-      ? Math.round(contributors.reduce((acc, c) => acc + (c.pramaan_score || 0), 0) / contributors.length)
-      : 70;
-
-    const integrityGrade = avgScore >= 80 ? "A" : avgScore >= 65 ? "B+" : avgScore >= 50 ? "C+" : "D";
+    const avgScore = null; // Unassessed before viva defense completion
+    const integrityGrade = "PENDING";
 
     const executiveSummary = `${topContributor.primary_name} is verified as the primary maintainer of ${owner}/${repo}, responsible for ${topContributor.total_commits} commits with an authentic ${topContributor.churn_ratio}% churn ratio across ${rawCommits.length} audited commits. Analysis confirmed genuine iterative engineering with verified Proof of Work under Hoollow standards.`;
 
@@ -578,10 +560,28 @@ export async function POST(req: NextRequest) {
 
     const analysisId = `gh__${encodeURIComponent(owner.toLowerCase())}__${encodeURIComponent(repo.toLowerCase())}`;
 
+    const headCommitSha = rawCommits[0]?.sha || "unknown";
     const report = {
       analysis_id: analysisId,
       repo_url: repoData.html_url,
       branch: defaultBranch,
+      resolved_head_sha: headCommitSha,
+      scope: {
+        resolved_head_sha: headCommitSha,
+        branch: defaultBranch,
+        total_branch_commits: rawCommits.length,
+        commits_mined_count: rawCommits.length,
+        commits_with_patch_details: commitDetailsToFetch.length,
+        files_audited_count: auditedFilesList.length,
+        files_omitted_count: Math.max(0, allAuditedFilesMap.size - auditedFilesList.length),
+        truncation_reasons: [
+          `File patch depth capped at top ${commitDetailsToFetch.length} commits to respect API rate budget`,
+          ...(allAuditedFilesMap.size > 40 ? ["Audited files display truncated to top 40 source modules"] : []),
+        ],
+        classifier_engine: "Semantic Path & Pattern Heuristics v1.2",
+        is_real_ast_parsed: false,
+        is_demo: false,
+      },
       total_commits: rawCommits.length,
       total_lines_audited: totalProjectLines,
       total_files: auditedFilesList.length || Math.max(1, repoData.size ? Math.floor(repoData.size / 30) : 10),

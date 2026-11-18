@@ -33,6 +33,7 @@ export default function VivaTerminalPage() {
   const router = useRouter();
   const analysisId = (params?.analysisId as string) || "demo-smart-campus";
   const contributorId = (params?.contributorId as string) || "contrib-002";
+  const isDemo = analysisId === "demo-smart-campus";
 
   const [questions, setQuestions] = useState<VivaQuestion[]>([]);
   const [contributor, setContributor] = useState<Contributor | null>(null);
@@ -59,12 +60,12 @@ export default function VivaTerminalPage() {
 
         // 2. Fetch contributor info
         const report = await getAnalysisReport(analysisId);
+        const isDemoSession = analysisId === "demo-smart-campus" || (report as any)?.is_demo;
         const match =
           report.contributors.find((c) => c.id === contributorId) ||
-          mockFullReport.contributors.find((c) => c.id === contributorId) ||
-          mockFullReport.contributors[1]; // fallback Aryan
+          (isDemoSession ? mockFullReport.contributors.find((c) => c.id === contributorId) : null);
         if (isCurrent) {
-          setContributor(match);
+          setContributor(match || null);
         }
       } catch (err) {
         console.warn("Failed to load viva questions, using default:", err);
@@ -114,6 +115,29 @@ export default function VivaTerminalPage() {
   const handleRetest = () => {
     setEvaluationResult(null);
   };
+
+  if (!isLoading && !contributor) {
+    return (
+      <div className="mx-auto max-w-2xl px-4 py-20 text-center font-mono">
+        <div className="rounded-2xl border border-rose-500/30 bg-rose-950/20 p-8 space-y-4">
+          <AlertTriangle className="h-8 w-8 text-rose-400 mx-auto" />
+          <h3 className="text-lg font-bold text-zinc-100">Contributor Not Found</h3>
+          <p className="text-xs text-zinc-400">
+            Contributor ID &apos;{contributorId}&apos; does not exist in analysis &apos;{analysisId}&apos;.
+          </p>
+          <div className="pt-2">
+            <Link
+              href={`/evidence/${analysisId}`}
+              className="inline-flex items-center space-x-1.5 rounded-xl bg-white text-zinc-950 px-4 py-2 text-xs font-semibold hover:bg-zinc-200 transition"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" />
+              <span>Back to Evidence Wall</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -277,6 +301,7 @@ export default function VivaTerminalPage() {
                 onSubmit={handleSubmitDefense}
                 isEvaluating={isEvaluating}
                 contributorName={contributor?.primary_name || "Contributor"}
+                isDemo={isDemo}
               />
             ) : (
               <div className="space-y-4">

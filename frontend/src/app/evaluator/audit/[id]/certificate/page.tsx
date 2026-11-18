@@ -9,6 +9,30 @@ import { ArrowLeft, ShieldCheck } from "lucide-react";
 export default function CertificatePage() {
   const params = useParams();
   const auditId = (params?.id as string) || "demo-smart-campus";
+  const isDemo = auditId === "demo-smart-campus";
+
+  const certData = isDemo
+    ? {
+        candidateName: "Rohit Sharma",
+        githubUsername: "rohit-sharma",
+        repoName: "demo/smart-campus-app",
+        branch: "main",
+        auditId: "PRM-2026-8FAE491C",
+        issueDate: "September 16, 2026",
+        commitsCount: 42,
+        tier3Lines: 5420,
+        tier3Percentage: 53.4,
+        churnRatio: 38.2,
+        vivaScore: 98,
+        pramaanScore: 94,
+        grade: "A",
+        evaluatorName: "Prof. Alok Sharma",
+        evaluatorTitle: "Faculty Lead & Principal Evaluator",
+        institution: "Stanford Cyber-Forensics Lab & Hoollow Protocol",
+        sha256Hash: "e4f81c9a882d9b136f874211a77489c623d548218fae491c77214f11b51c8e42",
+        isDemo: true,
+      }
+    : null; // Non-demo has no completed persisted assessment by default
 
   return (
     <div className="relative mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
@@ -34,7 +58,7 @@ export default function CertificatePage() {
         </Link>
       </div>
 
-      <ProofCertificatePDF />
+      <ProofCertificatePDF data={certData} />
     </div>
   );
 }

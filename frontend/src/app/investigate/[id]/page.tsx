@@ -43,8 +43,8 @@ const INITIAL_PHASES: PipelinePhase[] = [
   },
   {
     id: "ast",
-    name: "AST Complexity Tiering",
-    description: "4-tier semantic syntax tree parsing & cyclomatic weighting",
+    name: "Semantic Complexity Tiering",
+    description: "4-tier semantic path & regex classification (Heuristic)",
     status: "pending",
   },
   {
@@ -225,7 +225,7 @@ export default function InvestigationRoom() {
         );
         setProgress(65);
         setLinesCount(12480);
-        addLog("AST", "Parsing Abstract Syntax Trees across 24 source modules...");
+        addLog("AST", "Running semantic complexity classification across 24 source modules...");
         addLog("AST", "Tier-3 Algorithmic Weight: +8,420 lines verified in 'auth/' and 'engine/'.");
         addLog("AST", "Tier-0 Boilerplate Discard: -3,200 lines vendor code / lockfiles pruned.");
       }, 2700),

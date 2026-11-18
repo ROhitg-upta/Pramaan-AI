@@ -8,6 +8,7 @@ interface AnswerDefenseInputProps {
   onSubmit: (answer: string) => void;
   isEvaluating: boolean;
   contributorName: string;
+  isDemo?: boolean;
 }
 
 const ARYAN_FLUFF_RESPONSE =
@@ -20,6 +21,7 @@ export function AnswerDefenseInput({
   onSubmit,
   isEvaluating,
   contributorName,
+  isDemo = false,
 }: AnswerDefenseInputProps) {
   const [answerText, setAnswerText] = useState("");
   const [inputMode, setInputMode] = useState<"both" | "mic" | "text">("both");
@@ -130,28 +132,33 @@ export function AnswerDefenseInput({
           </p>
         </div>
 
-        {/* ⚡ Quick Testing Shortcuts */}
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={() => handlePreFill(ROHIT_BUILDER_RESPONSE)}
-            className="inline-flex items-center space-x-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 font-mono text-[11px] font-semibold text-emerald-300 hover:bg-emerald-500/20 transition active:scale-95"
-            title="Pre-fill authentic builder answer with concrete code specifics"
-          >
-            <Zap className="h-3 w-3 text-emerald-400" />
-            <span>⚡ Try Builder Answer</span>
-          </button>
+        {/* ⚡ Quick Testing Shortcuts (Isolated exclusively to Demo Mode) */}
+        {isDemo && (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[10px] font-mono text-amber-400 font-bold border border-amber-500/30 bg-amber-950/30 px-2 py-0.5 rounded">
+              DEMO PRACTICE ONLY
+            </span>
+            <button
+              type="button"
+              onClick={() => handlePreFill(ROHIT_BUILDER_RESPONSE)}
+              className="inline-flex items-center space-x-1.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 font-mono text-[11px] font-semibold text-emerald-300 hover:bg-emerald-500/20 transition active:scale-95"
+              title="Pre-fill authentic builder answer with concrete code specifics"
+            >
+              <Zap className="h-3 w-3 text-emerald-400" />
+              <span>⚡ Try Builder Answer</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => handlePreFill(ARYAN_FLUFF_RESPONSE)}
-            className="inline-flex items-center space-x-1.5 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 font-mono text-[11px] font-semibold text-rose-300 hover:bg-rose-500/20 transition active:scale-95"
-            title="Pre-fill generic AI fluff answer"
-          >
-            <Zap className="h-3 w-3 text-rose-400" />
-            <span>⚡ Try Fluff Answer</span>
-          </button>
-        </div>
+            <button
+              type="button"
+              onClick={() => handlePreFill(ARYAN_FLUFF_RESPONSE)}
+              className="inline-flex items-center space-x-1.5 rounded-lg border border-rose-500/30 bg-rose-500/10 px-2.5 py-1 font-mono text-[11px] font-semibold text-rose-300 hover:bg-rose-500/20 transition active:scale-95"
+              title="Pre-fill generic AI fluff answer"
+            >
+              <Zap className="h-3 w-3 text-rose-400" />
+              <span>⚡ Try Fluff Answer</span>
+            </button>
+          </div>
+        )}
       </div>
 
       <form onSubmit={handleSubmit} className="mt-4 space-y-4">

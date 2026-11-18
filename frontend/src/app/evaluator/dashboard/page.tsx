@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   GraduationCap,
   ShieldCheck,
@@ -86,7 +86,7 @@ const SAMPLE_TRANSCRIPTS: Record<string, ContributorTranscript> = {
   },
 };
 
-export default function EvaluatorDashboard() {
+function EvaluatorDashboardContent() {
   const router = useRouter();
   const { user } = useAuth();
 
@@ -147,6 +147,49 @@ export default function EvaluatorDashboard() {
     link.click();
     document.body.removeChild(link);
   };
+
+  const searchParams = useSearchParams();
+  const queryAnalysisId = searchParams?.get("id") || "";
+
+  // 1. Unauthenticated or non-evaluator gatekeeper
+  if (!user || user.role !== "EVALUATOR") {
+    return (
+      <div className="relative mx-auto max-w-2xl px-4 py-20 text-center font-mono">
+        <div className="rounded-3xl border border-amber-500/30 bg-zinc-950 p-8 sm:p-10 shadow-2xl space-y-5">
+          <div className="h-12 w-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto">
+            <AlertOctagon className="h-6 w-6" />
+          </div>
+          <div className="inline-flex items-center space-x-1.5 rounded-full border border-amber-500/30 bg-amber-950/30 px-3 py-0.5 text-[11px] text-amber-300 font-bold">
+            <span>INSTITUTIONAL ACCESS RESTRICTED</span>
+          </div>
+          <h2 className="font-display text-xl sm:text-2xl font-bold text-zinc-100">
+            Institutional Evaluator Authentication Required
+          </h2>
+          <p className="text-xs text-zinc-400 leading-relaxed max-w-md mx-auto">
+            Private cohort management, team comparisons, and student transcripts require server-verified institutional authentication.
+          </p>
+          <div className="p-3.5 rounded-xl border border-white/5 bg-zinc-900/60 text-left space-y-1.5 text-xs">
+            <div className="text-zinc-300 font-semibold flex items-center space-x-1.5">
+              <span>✦ Environment Status:</span>
+              <span className="text-amber-400">OAuth Credentials Unconfigured</span>
+            </div>
+            <div className="text-[11px] text-zinc-500">
+              `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` are not configured in environment variables. Public repository audits remain open and unblocked on the homepage.
+            </div>
+          </div>
+          <div className="pt-2 flex flex-col sm:flex-row gap-2.5 justify-center">
+            <Link
+              href="/"
+              className="inline-flex items-center justify-center space-x-2 rounded-xl bg-white text-zinc-950 px-5 py-2.5 text-xs font-semibold hover:bg-zinc-200 transition"
+            >
+              <span>Audit Public Repository</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
@@ -730,5 +773,14 @@ export default function EvaluatorDashboard() {
         </div>
       )}
     </div>
+  );
+}
+
+
+export default function EvaluatorDashboard() {
+  return (
+    <React.Suspense fallback={<div className="p-12 text-center text-zinc-500 font-mono text-xs">Loading Institutional Dashboard...</div>}>
+      <EvaluatorDashboardContent />
+    </React.Suspense>
   );
 }

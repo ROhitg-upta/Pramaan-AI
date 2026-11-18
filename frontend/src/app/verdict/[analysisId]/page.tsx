@@ -22,6 +22,7 @@ export default function VerdictPage() {
 
   const [report, setReport] = useState<FullReportResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Cinematic sequence phase:
   // 'darkness' -> 'title' -> 'scores' -> 'subscores' -> 'summary' -> 'receipt'
@@ -44,9 +45,9 @@ export default function VerdictPage() {
       try {
         const data = await getAnalysisReport(analysisId);
         setReport(data);
-      } catch (err) {
-        console.warn("Failed to fetch report, falling back to mock:", err);
-        setReport(mockFullReport);
+      } catch (err: any) {
+        console.error("Failed to fetch report for verdict:", err);
+        setError(err.message || "Failed to load audit report.");
       } finally {
         setIsLoading(false);
       }
@@ -87,7 +88,29 @@ export default function VerdictPage() {
     }
   };
 
-  const currentReport = report || mockFullReport;
+  if (!isLoading && !report) {
+    return (
+      <div className="relative min-h-screen bg-[#050507] text-white flex flex-col items-center justify-center p-4 font-mono">
+        <div className="rounded-2xl border border-rose-500/30 bg-rose-950/20 p-8 max-w-md text-center space-y-4">
+          <ShieldAlert className="h-8 w-8 text-rose-400 mx-auto" />
+          <h3 className="text-lg font-bold text-zinc-100">Report Unavailable</h3>
+          <p className="text-xs text-zinc-400">
+            {error || `Unable to load forensic report for analysis '${analysisId}'.`}
+          </p>
+          <div className="pt-2">
+            <Link
+              href="/"
+              className="inline-flex items-center space-x-2 rounded-xl bg-white text-zinc-950 px-4 py-2 text-xs font-semibold hover:bg-zinc-200 transition"
+            >
+              <span>Audit Another Repository</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const currentReport = report!;
   const isDemo = analysisId === "demo-smart-campus" || (currentReport as any).is_demo;
 
   // Render primary contributors (up to 4 in grid)

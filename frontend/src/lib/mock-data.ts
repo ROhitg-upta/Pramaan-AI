@@ -77,7 +77,7 @@ export interface Contributor {
     viva_defense: number | null;
   };
   pramaan_score: number | null;
-  verdict: "VERIFIED_BUILDER" | "PROBABLE_AUTHOR" | "SUSPECT_FREELOADER" | "GHOST_CONTRIBUTOR" | "UNPREPARED";
+  verdict: "VERIFIED_BUILDER" | "PROBABLE_AUTHOR" | "SUSPECT_FREELOADER" | "GHOST_CONTRIBUTOR" | "UNPREPARED" | "PENDING_ASSESSMENT";
   radar_axes: {
     algorithmic_depth: number;
     iterative_churn: number;
@@ -121,7 +121,9 @@ export interface FullReportResponse {
   total_files: number;
   analysis_duration_seconds: number;
   integrity_grade: string;
-  overall_pramaan_score: number;
+  overall_pramaan_score: number | null;
+  resolved_head_sha?: string;
+  scope?: any;
   contributors: Contributor[];
   timeline: TimelineCommit[];
   anomalies: Anomaly[];

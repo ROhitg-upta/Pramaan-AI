@@ -225,14 +225,14 @@ export async function analyzeGitHubRepoDirectly(
     const approxLines = Math.round(commitRatio * (repoData.size ? repoData.size * 5 : 500));
     const approxDeleted = Math.round(approxLines * 0.15);
 
-    const pramaanScore = Math.min(95, Math.max(45, Math.round(55 + commitRatio * 35 + activeDays * 2)));
-    const verdict = pramaanScore >= 75 ? "VERIFIED_BUILDER" : pramaanScore >= 50 ? "PROBABLE_AUTHOR" : "SUSPECT_FREELOADER";
+    const pramaanScore = null; // Unassessed before oral viva defense
+    const verdict = "PENDING_ASSESSMENT";
 
     contributors.push({
       id: `contrib-${author.login.toLowerCase().replace(/[^a-z0-9]/g, "")}`,
       primary_name: author.name,
       emails: author.email ? [author.email] : [author.login],
-      avatar_color: verdict === "VERIFIED_BUILDER" ? "#10B981" : "#06B6D4",
+      avatar_color: "#06B6D4",
       total_commits: author.commitsCount,
       lines_added: approxLines,
       lines_deleted: approxDeleted,
@@ -255,12 +255,12 @@ export async function analyzeGitHubRepoDirectly(
       commit_message_quality_avg: 82,
       anomaly_flags: [],
       sub_scores: {
-        git_forensics: Math.round(pramaanScore * 0.95),
-        ast_complexity: Math.round(pramaanScore * 0.9),
-        viva_defense: pramaanScore,
+        git_forensics: Math.round(55 + commitRatio * 35),
+        ast_complexity: 70,
+        viva_defense: null,
       },
-      pramaan_score: pramaanScore,
-      verdict,
+      pramaan_score: null,
+      verdict: "PENDING_ASSESSMENT",
       radar_axes: {
         algorithmic_depth: 70,
         iterative_churn: 65,
@@ -274,8 +274,8 @@ export async function analyzeGitHubRepoDirectly(
   contributors.sort((a, b) => b.total_commits - a.total_commits);
 
   const topContributor = contributors[0] || { primary_name: "Developer", total_commits: 0, churn_ratio: 0 };
-  const avgScore = Math.round(contributors.reduce((acc, c) => acc + (c.pramaan_score || 0), 0) / Math.max(contributors.length, 1));
-  const integrityGrade = avgScore >= 80 ? "A" : avgScore >= 65 ? "B+" : avgScore >= 50 ? "C+" : "D";
+  const avgScore = null; // Unassessed before viva defense completion
+  const integrityGrade = "PENDING";
 
   const analysisId = `gh__${encodeURIComponent(owner.toLowerCase())}__${encodeURIComponent(repo.toLowerCase())}`;
 
