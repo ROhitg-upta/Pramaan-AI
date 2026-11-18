@@ -24,16 +24,17 @@ export async function POST(req: NextRequest) {
 
     if (geminiKey && primaryFile.diffSnippet) {
       try {
-        const prompt = `You are the Autonomous Code Examiner for Pramaan AI.
-Generate 3 technical viva defense questions for student '${name}' who contributed to repository '${repo}'.
+        const prompt = `You are the Autonomous Oral Viva Examiner for Pramaan AI.
+Generate 3 short, conversational viva defense questions for student '${name}' who contributed to repository '${repo}'.
 Candidate modified file: '${primaryFile.filePath}' in commit '${primaryFile.commitHash}'.
 Code snippet:
 ${primaryFile.diffSnippet.slice(0, 1000)}
 
-Rules:
-1. Must cite file '${primaryFile.filePath}' and commit '${primaryFile.commitHash}'.
-2. Ask about design trade-offs, edge-case failure modes, and concurrency/error handling.
-3. Return strict JSON with an array named 'questions', each having:
+STRICT RULES:
+1. Every question must be SHORT, CONVERSATIONAL, and MAXIMUM 2 SENTENCES (under 35 words). No academic jargon.
+2. Ask directly about specific implementation choices in '${primaryFile.filePath}'.
+3. Ask like a friendly senior engineer in a real viva: "Why did you write it this way?", "What happens if this call fails?".
+4. Return strict JSON with an array named 'questions', each having:
    id, commit_hash, file_path, line_range, code_snippet, category, difficulty, question_text, expected_key_concepts, trap_signals.`;
 
         const geminiRes = await fetch(
@@ -80,7 +81,7 @@ Rules:
       }
     }
 
-    // Deterministic, Grounded Questions based on candidate's REAL files & diffs
+    // Deterministic, Grounded Questions based on candidate's REAL files & diffs (Conversational & Short)
     const questions = [
       {
         id: `viva-q-1-${primaryFile.commitHash || "head"}`,
@@ -91,7 +92,7 @@ Rules:
         referenced_lines: [14, 28, 42],
         category: "IMPLEMENTATION_TRADEOFF",
         difficulty: "Hard",
-        question_text: `In commit #${(primaryFile.lastCommitHash || primaryFile.commitHash || "head").slice(0, 7)}, you modified '${primaryFile.filePath}'. Explain the architectural trade-offs of this specific implementation and how your code guarantees state integrity when unexpected inputs occur.`,
+        question_text: `In '${primaryFile.filePath}', why did you implement this logic this way? How does your code handle unexpected inputs or runtime errors?`,
         expected_key_concepts: [
           "state integrity",
           "input validation",
@@ -113,7 +114,7 @@ Rules:
         referenced_lines: [25, 38],
         category: "FAILURE_EDGE_CASE",
         difficulty: "Medium",
-        question_text: `Regarding your modifications to '${secondaryFile.filePath}', what is the primary failure condition or edge case this module must handle, and how does your logic prevent crashes or data loss during network/service degradation?`,
+        question_text: `Looking at '${secondaryFile.filePath}', what is the main failure mode here? What happens if this operation times out or crashes unexpectedly?`,
         expected_key_concepts: [
           "degradation fallback",
           "exception handling",
@@ -134,7 +135,7 @@ Rules:
         referenced_lines: [10, 18],
         category: "SCALABILITY",
         difficulty: "Hard",
-        question_text: `If the scale of '${repo}' increases tenfold (10x user traffic or data volume), how will '${tertiaryFile.filePath}' perform, and what bottleneck would you need to refactor first?`,
+        question_text: `If traffic to '${tertiaryFile.filePath}' increases tenfold, what part of your code breaks first? How would you refactor it to scale?`,
         expected_key_concepts: [
           "memory footprint",
           "concurrency bottlenecks",

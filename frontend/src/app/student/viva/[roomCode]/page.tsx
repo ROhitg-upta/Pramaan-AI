@@ -64,7 +64,7 @@ const VIVA_QUESTIONS: VivaQuestion[] = [
     category: "FAILURE_EDGE_CASE",
     difficulty: "Hard",
     question_text:
-      "Candidate Rohit, in your useAuthContext hook at line 18, you invoke onAuthStateChanged to track user sessions. If the access token expires while the user maintains an open WebSocket connection on the dashboard, how does your hook coordinate token refresh with the active socket layer without race conditions?",
+      "In your useAuthContext hook, what happens if the user token expires while an active WebSocket connection is open? How does your hook handle that refresh without race conditions?",
     expected_key_concepts: ["token refresh propagation", "websocket reconnection", "stale closure"],
     trap_signals: ["Says it handles it automatically", "Cannot explain socket lifecycle"],
   },
@@ -89,7 +89,7 @@ const VIVA_QUESTIONS: VivaQuestion[] = [
     category: "SCALABILITY",
     difficulty: "Hard",
     question_text:
-      "Looking at line 45 of auth_service.py, you set a 5-second TTL on the Redis lock. If Redis experiences a momentary network partition right after _revoke_token_family succeeds, how does your architecture prevent a user lockout?",
+      "In auth_service.py, you set a 5-second TTL on the Redis lock. What happens if a network partition occurs right after token revocation?",
     expected_key_concepts: ["redis lock TTL expiration", "idempotency replay", "revocation audit log"],
     trap_signals: ["Claims database handles redis failure", "Ignores network partitions"],
   },
@@ -116,7 +116,7 @@ const VIVA_QUESTIONS: VivaQuestion[] = [
     category: "IMPLEMENTATION_TRADEOFF",
     difficulty: "Medium",
     question_text:
-      "On line 52 of Dashboard.jsx, you load courses with a single useEffect. If a professor adds a new course while a student has the dashboard open, the student never sees the update until a hard page reload. Why didn't you implement cache invalidation or SWR?",
+      "In Dashboard.jsx, why did you use a single useEffect fetch instead of caching or SWR? What bottleneck occurs if 100 students open the dashboard at once?",
     expected_key_concepts: ["stale data problem", "polling vs websockets", "React Query/SWR cache invalidation"],
     trap_signals: ["Claims useEffect auto-updates", "Does not understand stale closures"],
   },

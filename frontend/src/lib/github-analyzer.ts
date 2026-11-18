@@ -335,7 +335,7 @@ export function generateRealVivaQuestions(
       referenced_lines: [14, 25, 36],
       category: "IMPLEMENTATION_TRADEOFF",
       difficulty: "Hard",
-      question_text: `In commit #${(f1.lastCommitHash || f1.commitHash || "head").slice(0, 7)}, you modified '${f1.filePath}'. Explain the architectural trade-offs of this specific implementation and how your code guarantees state integrity when unexpected inputs occur.`,
+      question_text: `In '${f1.filePath}', why did you implement this logic this way? How does your code handle unexpected inputs or runtime errors?`,
       expected_key_concepts: [
         "state integrity",
         "input validation",
@@ -357,7 +357,7 @@ export function generateRealVivaQuestions(
       referenced_lines: [22, 34],
       category: "FAILURE_EDGE_CASE",
       difficulty: "Medium",
-      question_text: `Regarding your modifications to '${f2.filePath}', what is the primary failure condition or edge case this module must handle, and how does your logic prevent crashes or data loss during network/service degradation?`,
+      question_text: `Looking at '${f2.filePath}', what is the main failure mode here? What happens if this operation times out or crashes unexpectedly?`,
       expected_key_concepts: [
         "degradation fallback",
         "exception handling",
@@ -378,7 +378,7 @@ export function generateRealVivaQuestions(
       referenced_lines: [8, 16],
       category: "SCALABILITY",
       difficulty: "Hard",
-      question_text: `If the scale of '${repoName}' increases tenfold (10x user traffic or data volume), how will '${f3.filePath}' perform, and what bottleneck would you need to refactor first?`,
+      question_text: `If traffic to '${f3.filePath}' increases tenfold, what part of your code breaks first? How would you refactor it to scale?`,
       expected_key_concepts: [
         "memory footprint",
         "concurrency bottlenecks",

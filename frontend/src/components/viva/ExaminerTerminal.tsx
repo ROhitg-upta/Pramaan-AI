@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { Terminal, Sparkles, AlertCircle, HelpCircle, ShieldAlert } from "lucide-react";
+import React, { useState } from "react";
+import { Terminal, Sparkles, AlertCircle, HelpCircle, ShieldAlert, Volume2, VolumeX } from "lucide-react";
 import { useTypewriter } from "@/hooks/useTypewriter";
 import { type VivaQuestion } from "@/lib/mock-data";
 
@@ -18,15 +18,34 @@ export function ExaminerTerminal({
   totalQuestions,
   onTypewriterComplete,
 }: ExaminerTerminalProps) {
+  const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+
   // Cinematic typewriter streaming of question
   const { displayedText, isComplete, cursorVisible } = useTypewriter(
     question.question_text,
     {
-      speed: 18,
-      delay: 200,
+      speed: 16,
+      delay: 150,
       onComplete: onTypewriterComplete,
     }
   );
+
+  const handleSpeakQuestion = () => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return;
+    if (isPlayingAudio) {
+      window.speechSynthesis.cancel();
+      setIsPlayingAudio(false);
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(question.question_text);
+    utterance.rate = 0.95;
+    utterance.pitch = 1.0;
+    utterance.onend = () => setIsPlayingAudio(false);
+    utterance.onerror = () => setIsPlayingAudio(false);
+    setIsPlayingAudio(true);
+    window.speechSynthesis.speak(utterance);
+  };
 
   const getDifficultyBadge = (diff: string) => {
     switch (diff) {
@@ -91,14 +110,36 @@ export function ExaminerTerminal({
 
       {/* 2. Streaming Question Prompt */}
       <div className="mt-5 rounded-xl border border-white/5 bg-zinc-950/80 p-5">
-        <div className="flex items-start space-x-3">
-          <Sparkles className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
-          <div className="font-mono text-sm leading-relaxed text-zinc-100">
-            <span>{displayedText}</span>
-            {(!isComplete || cursorVisible) && (
-              <span className="inline-block w-2 h-4 ml-1 align-middle bg-emerald-400 animate-pulse" />
-            )}
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start space-x-3 flex-1">
+            <Sparkles className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />
+            <div className="font-mono text-sm leading-relaxed text-zinc-100">
+              <span>{displayedText}</span>
+              {(!isComplete || cursorVisible) && (
+                <span className="inline-block w-2 h-4 ml-1 align-middle bg-emerald-400 animate-pulse" />
+              )}
+            </div>
           </div>
+
+          {/* Audio Listen Aloud Toggle */}
+          <button
+            type="button"
+            onClick={handleSpeakQuestion}
+            className="shrink-0 inline-flex items-center space-x-1.5 rounded-lg border border-emerald-500/30 bg-emerald-950/30 px-3 py-1.5 text-xs font-mono text-emerald-400 hover:bg-emerald-900/40 transition active:scale-95 shadow-sm"
+            title="Listen to question spoken aloud"
+          >
+            {isPlayingAudio ? (
+              <>
+                <VolumeX className="h-3.5 w-3.5 text-rose-400 animate-pulse" />
+                <span className="text-rose-300">Stop</span>
+              </>
+            ) : (
+              <>
+                <Volume2 className="h-3.5 w-3.5 text-emerald-400" />
+                <span>Listen Aloud</span>
+              </>
+            )}
+          </button>
         </div>
       </div>
 
