@@ -116,16 +116,16 @@ export default function HoollowStyledLandingPage() {
   return (
     <div className="relative min-h-screen bg-[#09090b] text-white overflow-x-hidden flex flex-col justify-between selection:bg-emerald-500/20 selection:text-emerald-200">
       {/* 1. Main Hero Section with Full-Bleed WovenCanvas Background */}
-      <section className="relative w-full overflow-hidden bg-[#09090b] border-b border-white/5">
+      <section className="relative min-h-[85vh] flex items-center overflow-hidden bg-[#09090b] border-b border-white/5 w-full">
         {/* Full-Bleed Three.js Woven Light Particle Canvas Background */}
-        <WovenCanvas className="absolute inset-0 w-full h-full z-0 pointer-events-auto" />
+        <WovenCanvas className="absolute inset-0 w-full h-full z-0 pointer-events-none" />
 
         {/* Ambient Overlay for Text Readability & Contrast */}
         <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-transparent via-[#09090b]/30 to-[#09090b] z-0" />
 
         {/* Hero Content Container */}
-        <div className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pt-8 pb-16 flex-1 flex flex-col justify-center">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+        <div className="relative z-10 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-8 lg:py-12 flex-1 flex flex-col justify-center">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           
           {/* Left Column: Hero Narrative */}
           <div className="lg:col-span-7 flex flex-col items-start text-left">
@@ -243,7 +243,7 @@ export default function HoollowStyledLandingPage() {
             className="lg:col-span-5 relative z-10 w-full flex justify-center items-center"
           >
             {/* The Looping Pixel Art Team Video in Original Aspect Ratio */}
-            <div className="relative w-full aspect-video rounded-2xl overflow-hidden border border-zinc-800/80 shadow-[0_20px_50px_rgba(0,0,0,0.85)] bg-zinc-950/90 backdrop-blur-md">
+            <div className="relative w-full aspect-video max-w-lg rounded-2xl overflow-hidden border border-zinc-800/80 shadow-[0_20px_50px_rgba(0,0,0,0.85)] bg-zinc-950/90 backdrop-blur-md">
               <video
                 src="/builders_loop.mp4"
                 autoPlay

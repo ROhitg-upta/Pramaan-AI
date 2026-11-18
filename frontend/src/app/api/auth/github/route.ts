@@ -21,9 +21,16 @@ export async function GET(req: NextRequest) {
   // Generate random CSRF state
   const state = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 
-  const host = req.headers.get("x-forwarded-host") || req.headers.get("host") || "localhost:3000";
-  const protocol = host.includes("localhost") ? "http" : "https";
-  const redirectUri = `${protocol}://${host}/api/auth/github/callback`;
+  // Prioritize explicitly configured NEXT_PUBLIC_APP_URL (e.g. https://pramaan-ai-frontend-lovat.vercel.app)
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() || "";
+  let redirectUri: string;
+  if (appUrl) {
+    redirectUri = `${appUrl.replace(/\/+$/, "")}/api/auth/github/callback`;
+  } else {
+    const host = req.headers.get("x-forwarded-host") || req.headers.get("host") || "localhost:3000";
+    const protocol = host.includes("localhost") ? "http" : "https";
+    redirectUri = `${protocol}://${host}/api/auth/github/callback`;
+  }
 
   const githubAuthUrl = new URL("https://github.com/login/oauth/authorize");
   githubAuthUrl.searchParams.set("client_id", GITHUB_CLIENT_ID);

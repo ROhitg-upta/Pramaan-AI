@@ -173,16 +173,30 @@ export function InteractiveListPreview({
     imageRefs.current[index] = element;
   };
 
-  const setRowTextColor = (index: number, color: string) => {
+  const setRowTextColor = (index: number, isActive: boolean) => {
     const rowElement = rowRefs.current[index];
     if (!rowElement) return;
 
-    gsap.to(rowElement.querySelectorAll("td, p, span"), {
-      color,
-      duration: safeSmoothness,
-      ease: "power2.out",
-      overwrite: "auto",
-    });
+    const cells = rowElement.querySelectorAll("td");
+    if (isActive) {
+      // Switch all text on active row to crisp deep obsidian #07090D against white highlight bar
+      gsap.to(cells, {
+        color: "#07090D",
+        duration: safeSmoothness,
+        ease: "power2.out",
+        overwrite: "auto",
+      });
+      gsap.to(rowElement.querySelectorAll("*"), {
+        color: "#07090D",
+        duration: safeSmoothness,
+        ease: "power2.out",
+        overwrite: "auto",
+      });
+    } else {
+      if (cells[0]) gsap.to(cells[0], { color: "#FFFFFF", duration: safeSmoothness, ease: "power2.out", overwrite: "auto" });
+      if (cells[1]) gsap.to(cells[1], { color: "#A1A1AA", duration: safeSmoothness, ease: "power2.out", overwrite: "auto" });
+      if (cells[2]) gsap.to(cells[2], { color: "#71717A", duration: safeSmoothness, ease: "power2.out", overwrite: "auto" });
+    }
   };
 
   const moveHighlightToRow = (rowElement: HTMLTableRowElement | null) => {
@@ -293,12 +307,12 @@ export function InteractiveListPreview({
     }
 
     if (previousIndex !== null && previousIndex !== index) {
-      setRowTextColor(previousIndex, INACTIVE_ROW_TEXT_COLOR);
+      setRowTextColor(previousIndex, false);
     }
 
     activeIndexRef.current = index;
 
-    setRowTextColor(index, ACTIVE_ROW_TEXT_COLOR);
+    setRowTextColor(index, true);
     moveHighlightToRow(rowElement);
   };
 
@@ -316,7 +330,7 @@ export function InteractiveListPreview({
 
   const onTableLeave = () => {
     if (activeIndexRef.current !== null) {
-      setRowTextColor(activeIndexRef.current, INACTIVE_ROW_TEXT_COLOR);
+      setRowTextColor(activeIndexRef.current, false);
       activeIndexRef.current = null;
     }
 
@@ -362,17 +376,17 @@ export function InteractiveListPreview({
           className="pointer-events-none absolute inset-x-0 top-0 z-10 bg-white"
         />
 
-        {/* Floating Follower Card Container */}
+        {/* Floating Follower Card Container with Right-Hand Offset (z-30 pointer-events-none) */}
         <div
           ref={imageContainerRef}
-          className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center"
+          className="pointer-events-none absolute inset-0 z-30 flex items-center"
           style={enableMixBlend ? { mixBlendMode: "difference" } : undefined}
         >
           {items.map((item, index) => (
             <div
               key={`${item.client}-${index}`}
               ref={(element) => setImageRef(index, element)}
-              className="invisible absolute left-[52%] top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.85)] border border-white/15 overflow-hidden"
+              className="invisible absolute right-8 sm:right-14 top-1/2 -translate-y-1/2 rounded-2xl shadow-[0_30px_70px_rgba(0,0,0,0.95)] border border-white/20 overflow-hidden pointer-events-none z-30"
               style={{
                 width: `${BASE_IMAGE_WIDTH_REM * safeImageSize}rem`,
                 height: `${BASE_IMAGE_HEIGHT_REM * safeImageSize}rem`,
@@ -381,7 +395,7 @@ export function InteractiveListPreview({
               }}
             >
               {item.preview ? (
-                <div className="relative h-full w-full bg-zinc-950 p-4">
+                <div className="relative h-full w-full bg-[#07090D] border border-white/10 p-5 rounded-2xl shadow-2xl">
                   {item.preview}
                 </div>
               ) : item.img ? (
@@ -410,9 +424,9 @@ export function InteractiveListPreview({
 
             <thead>
               <tr className="border-b border-white/10 text-[11px] uppercase tracking-widest text-zinc-500">
-                <th className="px-6 py-4 text-left font-normal">Forensic Phase</th>
-                <th className="px-6 py-4 text-left font-normal">Sequence</th>
-                <th className="px-6 py-4 text-left font-normal">Engine Capability</th>
+                <th className="px-8 py-5 text-left font-normal">Forensic Phase</th>
+                <th className="px-8 py-5 text-left font-normal">Sequence</th>
+                <th className="px-8 py-5 text-left font-normal">Engine Capability</th>
               </tr>
             </thead>
 
@@ -426,15 +440,15 @@ export function InteractiveListPreview({
                   }
                   onMouseLeave={() => onRowLeave(index)}
                 >
-                  <td className="whitespace-nowrap px-6 py-6 text-sm font-bold uppercase tracking-wider text-white">
+                  <td className="whitespace-nowrap px-8 py-7 sm:py-8 text-base font-bold uppercase tracking-wider text-white">
                     {item.client}
                   </td>
 
-                  <td className="whitespace-nowrap px-6 py-6 text-xs uppercase tracking-widest text-zinc-400">
+                  <td className="whitespace-nowrap px-8 py-7 sm:py-8 text-xs font-semibold uppercase tracking-widest text-zinc-400">
                     {item.platform || `ACT 0${index + 1}`}
                   </td>
 
-                  <td className="px-6 py-6 text-xs text-zinc-400 leading-relaxed font-normal">
+                  <td className="px-8 py-7 sm:py-8 pr-72 xl:pr-80 text-xs text-zinc-400 leading-relaxed font-normal">
                     {item.services}
                   </td>
                 </tr>

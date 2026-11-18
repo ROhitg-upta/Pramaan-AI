@@ -54,18 +54,20 @@ export async function GET(req: NextRequest) {
       }
 
       const isCandidateOwner = session.userId === assessment.candidate_user_id;
-      // Evaluator access is strictly resource-scoped: must be the explicitly assigned evaluator or match authorized institution
-      const isAssignedEvaluator =
+      // Evaluator access is strictly resource-scoped: must be the explicitly assigned evaluator or match verified institution ID
+      const isExplicitAssignedEvaluator =
         session.role === "EVALUATOR" &&
         session.isInstitutionVerified &&
-        Boolean(
-          (assessment.assigned_evaluator_id && session.userId === assessment.assigned_evaluator_id) ||
-          (assessment.organization_name && session.organizationName && session.organizationName === assessment.organization_name)
-        );
+        Boolean(assessment.assigned_evaluator_id && session.userId === assessment.assigned_evaluator_id);
 
-      if (!isCandidateOwner && !isAssignedEvaluator) {
+      const isAuthorizedInstitutionEvaluator =
+        session.role === "EVALUATOR" &&
+        session.isInstitutionVerified &&
+        Boolean(assessment.institution_id && session.institutionId && session.institutionId === assessment.institution_id);
+
+      if (!isCandidateOwner && !isExplicitAssignedEvaluator && !isAuthorizedInstitutionEvaluator) {
         return NextResponse.json(
-          { error: "FORBIDDEN", message: "You are not authorized to view this private assessment. Explicit evaluator assignment or candidate ownership required." },
+          { error: "FORBIDDEN", message: "You are not authorized to view this private assessment. Explicit evaluator assignment or verified institution ID required." },
           { status: 403 }
         );
       }
@@ -164,27 +166,80 @@ export async function POST(req: NextRequest) {
       isPractice = true;
     }
 
-    // Generate unique assessment ID
-    const assessmentId = `asm_${Math.random().toString(36).substring(2, 10)}`;
+    // Check if an existing assessment record already exists for this run and contributor
+    const existingAssessments = await query(
+      `SELECT * FROM assessments WHERE analysis_run_id = $1 AND contributor_id = $2 ORDER BY created_at DESC LIMIT 1`,
+      [analysis_run_id, contributor_id]
+    );
 
-    // Verify run and contributor existence in DB
+    if (existingAssessments.length > 0) {
+      const existing = existingAssessments[0];
+      const exchanges = await query(
+        `SELECT question_index, commit_sha, file_path, line_start, line_end, code_snippet,
+                question_text, student_answer, answered_at, ai_score, feedback, builder_signals, fluff_signals
+         FROM assessment_exchanges
+         WHERE assessment_id = $1
+         ORDER BY question_index ASC`,
+        [existing.id]
+      );
+
+      return NextResponse.json({
+        assessment_id: existing.id,
+        analysis_run_id: existing.analysis_run_id,
+        contributor_id: existing.contributor_id,
+        status: existing.status,
+        is_practice: existing.is_practice,
+        account_linkage: existing.account_linkage,
+        viva_defense_score: existing.viva_defense_score,
+        final_pramaan_score: existing.final_pramaan_score,
+        certificate_id: existing.certificate_id,
+        certificate_sha256: existing.certificate_sha256,
+        questions_persisted: exchanges.length,
+        exchanges,
+        resumed: true,
+        message: "Resumed existing authoritative assessment record from server ledger.",
+      });
+    }
+
+    // Ensure analysis_run exists in DB
     const runRows = await query(`SELECT * FROM analysis_runs WHERE id = $1`, [analysis_run_id]);
     if (runRows.length === 0) {
-      return NextResponse.json(
-        { error: `Analysis run "${analysis_run_id}" not found.` },
-        { status: 404 }
+      const repoUrl = body.repo_url || body.repo_metadata?.repo_url || "https://github.com/repository";
+      const owner = body.owner || body.repo_metadata?.owner || "unknown";
+      const repoName = body.repo_name || body.repo_metadata?.repo_name || "unknown";
+      const branch = body.branch || body.repo_metadata?.branch || "main";
+      const commitSha = body.commit_sha || body.repo_metadata?.commit_sha || "head";
+
+      await query(
+        `INSERT INTO analysis_runs (id, repo_url, owner, repo_name, branch, resolved_commit_sha)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         ON CONFLICT (id) DO NOTHING`,
+        [analysis_run_id, repoUrl, owner, repoName, branch, commitSha]
       );
     }
 
+    // Ensure contributor exists in DB
     const contribRows = await query(
       `SELECT * FROM run_contributors WHERE id = $1 AND analysis_run_id = $2`,
       [contributor_id, analysis_run_id]
     );
+    if (contribRows.length === 0) {
+      const contribName = body.contributor_name || body.repo_metadata?.contributor_name || contributor_id;
+      await query(
+        `INSERT INTO run_contributors (id, analysis_run_id, contributor_login, primary_name)
+         VALUES ($1, $2, $3, $4)
+         ON CONFLICT (id) DO NOTHING`,
+        [contributor_id, analysis_run_id, contributor_id, contribName]
+      );
+    }
 
     const contributor = contribRows[0] || {
       git_forensics_score: 70,
       complexity_score: 65,
     };
+
+    // Generate unique assessment ID
+    const assessmentId = `asm_${Math.random().toString(36).substring(2, 10)}`;
 
     // Insert authoritative assessment record
     await query(

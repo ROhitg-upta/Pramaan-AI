@@ -124,9 +124,9 @@ export async function POST(req: NextRequest) {
 
     const exchange = exchangeRows[0];
 
-    // 6. Concurrency Control & Idempotency
+    // 6. Concurrency Control: Atomic SQL Claim before External Evaluation
     if (exchange.answered_at) {
-      // If submitted with identical idempotency key and identical answer: return existing result (safe idempotent retry)
+      // If submitted with identical idempotency key and identical answer: return existing result (safe idempotent replay)
       if (idempotency_key && exchange.idempotency_key === idempotency_key && exchange.student_answer === cleanAnswer) {
         return NextResponse.json({
           idempotent_replay: true,
@@ -149,6 +149,61 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Atomic SQL Claim Token: prevents concurrent double-evaluation or race conditions
+    const claimToken = `clm_${crypto.randomUUID()}`;
+    const claimResult = await query(
+      `UPDATE assessment_exchanges
+       SET claim_status = 'EVALUATING',
+           claim_token = $1,
+           claimed_at = CURRENT_TIMESTAMP
+       WHERE assessment_id = $2
+         AND question_index = $3
+         AND answered_at IS NULL
+         AND (
+           claim_status = 'PENDING'
+           OR claim_status IS NULL
+           OR (claim_status = 'EVALUATING' AND claimed_at < CURRENT_TIMESTAMP - INTERVAL '45 seconds')
+           OR claim_status = 'FAILED'
+         )
+       RETURNING id`,
+      [claimToken, assessment_id, question_index]
+    );
+
+    if (claimResult.length === 0) {
+      // Re-fetch exchange to determine if it just completed or is actively evaluating
+      const freshRows = await query(
+        `SELECT * FROM assessment_exchanges WHERE assessment_id = $1 AND question_index = $2`,
+        [assessment_id, question_index]
+      );
+      const freshExchange = freshRows[0];
+
+      if (freshExchange?.answered_at) {
+        if (idempotency_key && freshExchange.idempotency_key === idempotency_key && freshExchange.student_answer === cleanAnswer) {
+          return NextResponse.json({
+            idempotent_replay: true,
+            question_index,
+            ai_score: freshExchange.ai_score,
+            feedback: freshExchange.feedback,
+            builder_signals: freshExchange.builder_signals,
+            fluff_signals: freshExchange.fluff_signals,
+            assessment_status: assessment.status,
+          });
+        }
+        return NextResponse.json(
+          { error: "CONFLICT_ALREADY_SUBMITTED", message: `Question ${question_index + 1} has already been submitted.` },
+          { status: 409 }
+        );
+      }
+
+      return NextResponse.json(
+        {
+          error: "EVALUATION_IN_PROGRESS",
+          message: "Evaluation is currently running for this question in another request. Please wait.",
+        },
+        { status: 409 }
+      );
+    }
+
     // 7. Server-Side Answer Evaluation (Using stored question & expected concepts)
     let evaluationResult: any = null;
     try {
@@ -158,7 +213,15 @@ export async function POST(req: NextRequest) {
         exchange.expected_concepts || []
       );
     } catch (evalErr: any) {
-      // Network or AI provider error: DO NOT set score to 0! Leave pending for retry.
+      // Release claim on failure so user can retry
+      await query(
+        `UPDATE assessment_exchanges
+         SET claim_status = 'FAILED',
+             claim_token = NULL
+         WHERE assessment_id = $1 AND question_index = $2 AND claim_token = $3`,
+        [assessment_id, question_index, claimToken]
+      );
+
       console.error("Evaluation provider error:", evalErr);
       return NextResponse.json(
         {
@@ -171,17 +234,19 @@ export async function POST(req: NextRequest) {
 
     const { score, feedback, builderSignals, fluffSignals } = evaluationResult;
 
-    // 8. Atomically Update Exchange in Database
+    // 8. Atomically Finalize Exchange in Database
     await query(
       `UPDATE assessment_exchanges
        SET student_answer = $1,
            answered_at = CURRENT_TIMESTAMP,
+           claim_status = 'COMPLETED',
+           claim_token = NULL,
            idempotency_key = $2,
            ai_score = $3,
            feedback = $4,
            builder_signals = $5,
            fluff_signals = $6
-       WHERE assessment_id = $7 AND question_index = $8`,
+       WHERE assessment_id = $7 AND question_index = $8 AND claim_token = $9`,
       [
         cleanAnswer,
         idempotency_key || null,
@@ -191,6 +256,7 @@ export async function POST(req: NextRequest) {
         JSON.stringify(fluffSignals || []),
         assessment_id,
         question_index,
+        claimToken,
       ]
     );
 

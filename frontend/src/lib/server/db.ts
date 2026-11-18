@@ -5,7 +5,7 @@
 
 import { Pool, neon } from "@neondatabase/serverless";
 
-const databaseUrl = process.env.DATABASE_URL?.trim() || "";
+const databaseUrl = process.env.DATABASE_URL?.trim() || process.env.POSTGRES_URL?.trim() || "";
 
 export const isDatabaseConfigured = Boolean(
   databaseUrl && (databaseUrl.startsWith("postgres://") || databaseUrl.startsWith("postgresql://"))

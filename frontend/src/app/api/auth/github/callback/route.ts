@@ -96,7 +96,8 @@ export async function GET(req: NextRequest) {
     // 4. Role Assignment & Institution Whitelist Check
     let role: "STUDENT" | "EVALUATOR" | "ADMIN" = "STUDENT";
     let isInstitutionVerified = false;
-    let organizationName = undefined;
+    let institutionId: string | null = null;
+    let organizationName: string | undefined = undefined;
 
     const userId = `usr_${githubNumericId}`;
 
@@ -111,20 +112,21 @@ export async function GET(req: NextRequest) {
         if (evalRows.length > 0) {
           role = "EVALUATOR";
           isInstitutionVerified = true;
+          institutionId = evalRows[0].institution_id;
           organizationName = evalRows[0].institution_name;
         }
 
         // Upsert user in database
         await query(
           `INSERT INTO users (
-            id, email, full_name, github_numeric_id, github_login, role, is_institution_verified, organization_name
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            id, email, full_name, github_numeric_id, github_login, role, is_institution_verified, institution_id, organization_name
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
           ON CONFLICT (id) DO UPDATE SET
             email = EXCLUDED.email,
             full_name = EXCLUDED.full_name,
             github_login = EXCLUDED.github_login,
             updated_at = CURRENT_TIMESTAMP`,
-          [userId, primaryEmail, fullName, githubNumericId, githubLogin, role, isInstitutionVerified, organizationName]
+          [userId, primaryEmail, fullName, githubNumericId, githubLogin, role, isInstitutionVerified, institutionId, organizationName]
         );
       } catch (dbErr) {
         console.warn("User upsert in database notice:", dbErr);
@@ -141,13 +143,21 @@ export async function GET(req: NextRequest) {
       accountLinkage: "GITHUB_ACCOUNT_LINKED",
       role,
       isInstitutionVerified,
+      institutionId,
       organizationName,
     });
 
     // 6. Set HTTP-only Secure Cookie and Redirect
-    const host = req.headers.get("x-forwarded-host") || req.headers.get("host") || "localhost:3000";
-    const protocol = host.includes("localhost") ? "http" : "https";
-    const targetUrl = new URL(returnTo, `${protocol}://${host}`);
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() || "";
+    let baseOrigin: string;
+    if (appUrl) {
+      baseOrigin = appUrl.replace(/\/+$/, "");
+    } else {
+      const host = req.headers.get("x-forwarded-host") || req.headers.get("host") || "localhost:3000";
+      const protocol = host.includes("localhost") ? "http" : "https";
+      baseOrigin = `${protocol}://${host}`;
+    }
+    const targetUrl = new URL(returnTo, baseOrigin);
 
     const res = NextResponse.redirect(targetUrl.toString());
 

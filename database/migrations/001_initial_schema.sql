@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS users (
     github_login VARCHAR(128) NULL,
     role VARCHAR(32) NOT NULL DEFAULT 'STUDENT', -- 'STUDENT', 'EVALUATOR', 'ADMIN'
     is_institution_verified BOOLEAN NOT NULL DEFAULT FALSE,
+    institution_id VARCHAR(64) NULL,
     organization_name VARCHAR(255) NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -31,6 +32,7 @@ CREATE TABLE IF NOT EXISTS sessions (
 CREATE TABLE IF NOT EXISTS institution_evaluators (
     id VARCHAR(64) PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
+    institution_id VARCHAR(64) NOT NULL,
     institution_name VARCHAR(255) NOT NULL,
     approved_by VARCHAR(64) NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -79,6 +81,7 @@ CREATE TABLE IF NOT EXISTS assessments (
     candidate_github_numeric_id BIGINT NULL,
     account_linkage VARCHAR(64) NOT NULL DEFAULT 'UNLINKED', -- 'GITHUB_ACCOUNT_LINKED', 'UNLINKED'
     assigned_evaluator_id VARCHAR(64) NULL REFERENCES users(id),
+    institution_id VARCHAR(64) NULL,
     organization_name VARCHAR(255) NULL,
     status VARCHAR(32) NOT NULL DEFAULT 'SCHEDULED', -- 'SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'FLAGGED'
     is_practice BOOLEAN NOT NULL DEFAULT FALSE,
@@ -107,6 +110,9 @@ CREATE TABLE IF NOT EXISTS assessment_exchanges (
     code_snippet TEXT NOT NULL,
     question_text TEXT NOT NULL,
     expected_concepts JSONB NOT NULL DEFAULT '[]'::jsonb,
+    claim_status VARCHAR(32) NOT NULL DEFAULT 'PENDING', -- 'PENDING', 'EVALUATING', 'COMPLETED', 'FAILED'
+    claim_token VARCHAR(128) NULL,
+    claimed_at TIMESTAMP WITH TIME ZONE NULL,
     student_answer TEXT NULL,
     answered_at TIMESTAMP WITH TIME ZONE NULL,
     latency_seconds REAL NULL,

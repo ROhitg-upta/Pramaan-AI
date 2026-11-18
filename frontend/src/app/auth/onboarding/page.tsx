@@ -22,11 +22,9 @@ export default function OnboardingPage() {
   const [githubUser, setGithubUser] = useState("");
 
   const handleComplete = () => {
-    if (selectedRole === "EVALUATOR") {
-      loginAs("evaluator");
-    } else {
-      loginAs("student");
-    }
+    // Institutional Evaluator status requires server verification.
+    // Users cannot self-assign institutional access.
+    loginWithGithub(selectedRole);
   };
 
   return (

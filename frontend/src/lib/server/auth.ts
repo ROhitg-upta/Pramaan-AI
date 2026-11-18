@@ -22,6 +22,7 @@ export interface VerifiedSession {
   accountLinkage: "GITHUB_ACCOUNT_LINKED" | "UNLINKED";
   role: "STUDENT" | "EVALUATOR" | "ADMIN";
   isInstitutionVerified: boolean;
+  institutionId?: string | null;
   organizationName?: string;
 }
 
@@ -41,6 +42,7 @@ export async function createSessionToken(session: VerifiedSession, expiresIn = "
     accountLinkage: session.accountLinkage,
     role: session.role,
     isInstitutionVerified: session.isInstitutionVerified,
+    institutionId: session.institutionId || null,
     organizationName: session.organizationName,
   })
     .setProtectedHeader({ alg: "HS256" })
@@ -83,6 +85,7 @@ export async function getVerifiedSession(req: NextRequest): Promise<VerifiedSess
       accountLinkage: (payload.accountLinkage as any) || "UNLINKED",
       role: (payload.role as any) || "STUDENT",
       isInstitutionVerified: Boolean(payload.isInstitutionVerified),
+      institutionId: (payload.institutionId as string) || null,
       organizationName: payload.organizationName as string | undefined,
     };
   } catch {

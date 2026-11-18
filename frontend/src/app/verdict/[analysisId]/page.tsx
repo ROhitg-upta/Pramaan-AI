@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Scale, FastForward, ShieldAlert, CheckCircle, Sparkles, ArrowLeft } from "lucide-react";
@@ -16,9 +16,11 @@ import { ThermalReceipt } from "@/components/receipt/ThermalReceipt";
 import { ExportActions } from "@/components/receipt/ExportActions";
 import { ForensicGridBg } from "@/components/layout/ForensicGridBg";
 
-export default function VerdictPage() {
+function VerdictPageContent() {
   const params = useParams();
   const analysisId = (params?.analysisId as string) || "demo-smart-campus";
+  const searchParams = useSearchParams();
+  const assessmentId = searchParams.get("assessmentId");
 
   const [report, setReport] = useState<FullReportResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -44,6 +46,40 @@ export default function VerdictPage() {
     async function loadReport() {
       try {
         const data = await getAnalysisReport(analysisId);
+
+        // If an authoritative assessment was completed, merge persisted ledger scores
+        if (assessmentId) {
+          try {
+            const asmRes = await fetch(`/api/assessment?id=${encodeURIComponent(assessmentId)}`);
+            if (asmRes.ok) {
+              const asmData = await asmRes.json();
+              if (asmData?.scores) {
+                data.contributors = data.contributors.map((c) => {
+                  if (c.id === asmData.contributor_id || data.contributors.length === 1) {
+                    const isCompleted = asmData.status === "COMPLETED";
+                    const finalScore = isCompleted ? asmData.scores.final_pramaan : null;
+                    return {
+                      ...c,
+                      sub_scores: {
+                        git_forensics: asmData.scores.git_forensics ?? c.sub_scores.git_forensics,
+                        ast_complexity: asmData.scores.complexity ?? c.sub_scores.ast_complexity,
+                        viva_defense: isCompleted ? asmData.scores.viva_defense : null,
+                      },
+                      pramaan_score: finalScore,
+                      verdict: isCompleted
+                        ? (finalScore >= 75 ? "VERIFIED_BUILDER" : "SUSPECT_FREELOADER")
+                        : "PENDING_ASSESSMENT",
+                    };
+                  }
+                  return c;
+                });
+              }
+            }
+          } catch (asmErr) {
+            console.warn("Authoritative assessment score fetch notice:", asmErr);
+          }
+        }
+
         setReport(data);
       } catch (err: any) {
         console.error("Failed to fetch report for verdict:", err);
@@ -227,7 +263,7 @@ export default function VerdictPage() {
                     <SubScoreBreakdown
                       gitForensics={contrib.sub_scores.git_forensics}
                       astComplexity={contrib.sub_scores.ast_complexity}
-                      vivaDefense={contrib.sub_scores.viva_defense ?? (score >= 70 ? 92 : 30)}
+                      vivaDefense={contrib.sub_scores.viva_defense ?? null}
                       delay={idx * 0.2}
                     />
                   )}
@@ -266,11 +302,23 @@ export default function VerdictPage() {
               </span>
             </div>
             <span className="text-zinc-500 text-xs">
-              {isDemo ? "Demonstration Case Receipt" : "Cryptographically Signed Proof"}
+              {isDemo ? "Demonstration Case Receipt" : "Authenticated Ledger Verification Record"}
             </span>
           </div>
         </div>
       )}
     </div>
+  );
+}
+
+export default function VerdictPage() {
+  return (
+    <React.Suspense fallback={
+      <div className="min-h-screen bg-[#050507] flex items-center justify-center font-mono text-xs text-zinc-400">
+        Loading verdict ledger...
+      </div>
+    }>
+      <VerdictPageContent />
+    </React.Suspense>
   );
 }

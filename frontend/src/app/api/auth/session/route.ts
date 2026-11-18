@@ -22,6 +22,7 @@ export async function GET(req: NextRequest) {
             githubLogin: session.githubLogin,
             accountLinkage: session.accountLinkage,
             isInstitutionVerified: session.isInstitutionVerified,
+            institutionId: session.institutionId || null,
             organizationName: session.organizationName,
           }
         : null,

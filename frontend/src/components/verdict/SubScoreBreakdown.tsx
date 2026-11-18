@@ -7,7 +7,7 @@ import { GitCommit, Layers, Mic } from "lucide-react";
 export interface SubScoreBreakdownProps {
   gitForensics: number;
   astComplexity: number;
-  vivaDefense: number;
+  vivaDefense: number | null;
   delay?: number;
 }
 
@@ -23,6 +23,7 @@ export function SubScoreBreakdown({
       label: "Git Forensics",
       weight: "35%",
       score: gitForensics,
+      isPending: false,
       icon: GitCommit,
       color:
         gitForensics >= 70
@@ -39,9 +40,10 @@ export function SubScoreBreakdown({
     },
     {
       id: "ast",
-      label: "AST Complexity",
+      label: "Semantic Complexity (Heuristic)",
       weight: "25%",
       score: astComplexity,
+      isPending: false,
       icon: Layers,
       color:
         astComplexity >= 70
@@ -58,18 +60,23 @@ export function SubScoreBreakdown({
     },
     {
       id: "viva",
-      label: "Viva Defense",
+      label: "Oral Viva Defense",
       weight: "40%",
       score: vivaDefense,
+      isPending: vivaDefense === null,
       icon: Mic,
       color:
-        vivaDefense >= 70
+        vivaDefense === null
+          ? "bg-zinc-700"
+          : vivaDefense >= 70
           ? "bg-emerald-500"
           : vivaDefense >= 40
           ? "bg-amber-500"
           : "bg-rose-500",
       textColor:
-        vivaDefense >= 70
+        vivaDefense === null
+          ? "text-zinc-500"
+          : vivaDefense >= 70
           ? "text-emerald-400"
           : vivaDefense >= 40
           ? "text-amber-400"
@@ -102,8 +109,8 @@ export function SubScoreBreakdown({
                 </span>
               </div>
               <span className={`font-bold ${item.textColor}`}>
-                {item.score}
-                <span className="text-zinc-600 font-normal">/100</span>
+                {item.isPending ? "PENDING" : item.score}
+                {!item.isPending && <span className="text-zinc-600 font-normal">/100</span>}
               </span>
             </div>
 
@@ -112,7 +119,7 @@ export function SubScoreBreakdown({
               <motion.div
                 className={`h-full rounded-full ${item.color}`}
                 initial={{ width: "0%" }}
-                animate={{ width: `${Math.min(Math.max(item.score, 0), 100)}%` }}
+                animate={{ width: item.isPending ? "0%" : `${Math.min(Math.max(item.score || 0, 0), 100)}%` }}
                 transition={{
                   duration: 0.8,
                   delay: delay + idx * 0.12 + 0.1,

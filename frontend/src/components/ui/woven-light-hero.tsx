@@ -242,7 +242,7 @@ export function WovenCanvas({ className = "", style }: WovenCanvasProps) {
   return (
     <div
       ref={mountRef}
-      className={`relative w-full h-full overflow-hidden ${className}`}
+      className={`overflow-hidden ${className}`}
       style={style}
       aria-hidden="true"
     />
